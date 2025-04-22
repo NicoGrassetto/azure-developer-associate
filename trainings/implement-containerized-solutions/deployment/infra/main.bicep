@@ -1,7 +1,8 @@
 targetScope = 'subscription'
 
 param location string = 'eastus'
-param registryName string = 'myContainerRegistry'
+// Updated registry name to include a unique suffix
+param registryName string = 'myContainerRegistry${uniqueString(subscription().id)}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'az204-acr-rg'
