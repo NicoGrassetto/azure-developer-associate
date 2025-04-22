@@ -73,7 +73,7 @@ ACR Tasks supports several scenarios to build and maintain container images and 
 
 - **Quick task** - Build and push a single container image to a container registry on-demand, in Azure, without needing a local Docker Engine installation. Think `docker build`, `docker push` in the cloud.
 
-- **Automatically triggered tasks** - Enable one or more triggers to build an image:
+- **Automatically triggered tasks** - Enable one or more *triggers* to build an image:
   - Trigger on source code update
   - Trigger on base image update
   - Trigger on a schedule
@@ -328,7 +328,7 @@ Azure Container Instances (ACI) is a great solution for any scenario that can op
 - **Persistent storage**: Mount Azure Files shares directly to a container to retrieve and persist state
 - **Linux and Windows**: Schedule both Windows and Linux containers using the same API.
 
-For scenarios where you need full container orchestration, including service discovery across multiple containers, automatic scaling, and coordinated application upgrades, we recommend Azure Kubernetes Service (AKS).
+For scenarios where you need full container orchestration, including service discovery across multiple containers, automatic scaling, and coordinated application upgrades, we recommend ¨[Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/).
 
 #### Container groups
 
@@ -336,7 +336,7 @@ The top-level resource in Azure Container Instances is the *container group*. A 
 
 The following diagram shows an example of a container group that includes multiple containers:
 
-![alt text](image.png)
+![alt text](./assets/image.png)
 
 This example container group:
 
@@ -346,8 +346,7 @@ This example container group:
 - Consists of two containers. One container listens on port 80, while the other listens on port 5000.
 - Includes two Azure file shares as volume mounts, and each container mounts one of the shares locally.
 
-> [!NOTE]
-> Multi-container groups currently support only Linux containers. For Windows containers, Azure Container Instances only supports deployment of a single instance.
+> **Note**: Multi-container groups currently support only Linux containers. For Windows containers, Azure Container Instances only supports deployment of a single instance.
 
 #### Deployment
 
@@ -424,17 +423,17 @@ You create a container by providing a name, a Docker image, and an Azure resourc
     aci-wt.eastus.azurecontainer.io         Succeeded
     ```
 
-    > [!NOTE]
-    > If your container is in the **Creating** state, wait a few moments and run the command again until you see the **Succeeded** state.
+    > **Note**: If your container is in the **Creating** state, wait a few moments and run the command again until you see the **Succeeded** state.
 
 2. From a browser, navigate to your container's FQDN to see it running. You may get a warning that the site isn't safe.
 
 ##### Clean up resources
 
 When no longer needed, you can use the `az group delete` command to remove the resource group, the container registry, and the container images stored there.
-    ```bash
-    az group delete --name az204-aci-rg --no-wait
-    ```
+
+```bash
+az group delete --name az204-aci-rg --no-wait
+```
 
 ### Run containerized tasks with restart policies
 
@@ -708,19 +707,18 @@ When you implement a system composed of microservices, function calls are spread
 
     ```bash
     az provider register --namespace Microsoft.App
-    > **Note**  
-    > Azure Container Apps resources have migrated from the `Microsoft.Web` namespace to the `Microsoft.App` namespace.
-4. Register the Microsoft.OperationalInsights provider for the Azure Monitor Log Analytics workspace if you haven't used it before.
+    ```
+    > **Note**: Azure Container Apps resources have migrated from the `Microsoft.Web` namespace to the `Microsoft.App` namespace.
 
-```bash
-az provider register --namespace Microsoft.OperationalInsights
-```
+3. Register the `Microsoft.OperationalInsights` provider for the Azure Monitor Log Analytics workspace if you haven't used it before.
 
- Note
+    ```bash
+    az provider register --namespace Microsoft.OperationalInsights
+    ```
 
-Registering the Microsoft.App namespace and Microsoft.OperationalInsights can each take a few minutes to complete.
+    > **Note**: Registering the `Microsoft.App` namespace and `Microsoft.OperationalInsights` can each take a few minutes to complete.
 
-5. Set environment variables used later in this exercise. Replace `<location>` with a region near you.
+4. Set environment variables used later in this exercise. Replace `<location>` with a region near you.
 
     ```bash
     myRG=az204-appcont-rg
@@ -774,7 +772,7 @@ By setting `--ingress` to `external`, you make the container app available to pu
 
 Select the link returned by the `az containerapp create` command to verify the container app is running.
 
-![alt text](image-1.png)
+![alt text](./assets/image-1.png)
 
 #### Clean up resources
 
@@ -788,7 +786,7 @@ az group delete --name $myRG
 
 Azure Container Apps manages the details of Kubernetes and container orchestration for you. Containers in Azure Container Apps can use any runtime, programming language, or development stack of your choice.
 
-![alt text](image-2.png)
+![alt text](./assets/image-2.png)
 
 Azure Container Apps supports any Linux-based x86-64 (`linux/amd64`) container image. There's no required base container image, and if a container crashes it automatically restarts.
 
@@ -847,8 +845,7 @@ Examples of sidecar containers include:
 - An agent that reads logs from the primary app container on a shared volume and forwards them to a logging service.
 - A background process that refreshes a cache used by the primary app container in a shared volume.
 
-> [!NOTE]  
-> Running multiple containers in a single container app is an advanced use case. In most situations where you want to run multiple containers, such as when implementing a microservice architecture, deploy each service as a separate container app.
+> **Note**: Running multiple containers in a single container app is an advanced use case. In most situations where you want to run multiple containers, such as when implementing a microservice architecture, deploy each service as a separate container app.
 
 To run multiple containers in a container app, add more than one container in the containers array of the container app template.
 
@@ -876,7 +873,7 @@ With the registry information added, the saved credentials can be used to pull a
 Azure Container Apps has the following limitations:
 
 - **Privileged containers**: Azure Container Apps can't run privileged containers. If your program attempts to run a process that requires root access, the application inside the container experiences a runtime error.
-- **Operating system**: Linux-based (linux/amd64) container images are required.
+- **Operating system**: Linux-based (`linux/amd64`) container images are required.
 
 ### Implement authentication and authorization in Azure Container Apps
 
@@ -892,14 +889,17 @@ This feature should only be used with HTTPS. Ensure `allowInsecure` is disabled 
 
 #### Identity providers
 
+Container Apps uses federated identity, in which a third-party identity provider manages the user identities and authentication flow for you. The following identity providers are available by default:
+
+
 | **Provider**                  | **Sign-in endpoint**          | **How-To guidance**          |
 |-------------------------------|-------------------------------|------------------------------|
-| Microsoft Identity Platform   | /.auth/login/aad             | [Microsoft Identity Platform](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra) |
-| Facebook                      | /.auth/login/facebook        | [Facebook](https://learn.microsoft.com/en-us/azure/container-apps/authentication-facebook) |
-| GitHub                        | /.auth/login/github          | [GitHub](https://learn.microsoft.com/en-us/azure/container-apps/authentication-github) |
-| Google                        | /.auth/login/google          | [Google](https://learn.microsoft.com/en-us/azure/container-apps/authentication-google) |
-| X                             | /.auth/login/twitter         | [X](https://learn.microsoft.com/en-us/azure/container-apps/authentication-twitter) |
-| Any OpenID Connect provider   | /.auth/login/<providerName>  | [OpenID Connect](https://learn.microsoft.com/en-us/azure/container-apps/authentication-openid) |
+| Microsoft Identity Platform   | `/.auth/login/aad`             | [Microsoft Identity Platform](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra) |
+| Facebook                      | `/.auth/login/facebook`        | [Facebook](https://learn.microsoft.com/en-us/azure/container-apps/authentication-facebook) |
+| GitHub                        | `/.auth/login/github`          | [GitHub](https://learn.microsoft.com/en-us/azure/container-apps/authentication-github) |
+| Google                        | `/.auth/login/google`          | [Google](https://learn.microsoft.com/en-us/azure/container-apps/authentication-google) |
+| X                             | `/.auth/login/twitter`         | [X](https://learn.microsoft.com/en-us/azure/container-apps/authentication-twitter) |
+| Any OpenID Connect provider   | `/.auth/login/<providerName>`  | [OpenID Connect](https://learn.microsoft.com/en-us/azure/container-apps/authentication-openid) |
 
 When you use one of these providers, the sign-in endpoint is available for user authentication and authentication token validation from the provider. You can provide your users with any number of these provider options.
 
@@ -907,7 +907,7 @@ When you use one of these providers, the sign-in endpoint is available for user 
 
 The authentication and authorization middleware component is a feature of the platform that runs as a sidecar container on each replica in your application. When enabled, every incoming HTTP request passes through the security layer before being handled by your application.
 
-![alt text](image-3.png)
+![alt text](./assets/image-3.png)
 
 The platform middleware handles several things for your app:
 
@@ -931,7 +931,7 @@ Azure Container Apps implements container app versioning by creating revisions. 
 
 You can control which revisions are active, and the external traffic that is routed to each active revision. Revision names are used to identify a revision, and in the revision's URL. You can customize the revision name by setting the revision suffix.
 
-By default, Container Apps creates a unique revision name with a suffix consisting of a semi-random string of alphanumeric characters. For example, for a container app named album-api, setting the revision suffix name to 1st-revision would create a revision with the name album-api--1st-revision. You can set the revision suffix in the ARM template, through the Azure CLI `az containerapp create` and `az containerapp update` commands, or when creating a revision via the Azure portal.
+By default, Container Apps creates a unique revision name with a suffix consisting of a semi-random string of alphanumeric characters. For example, for a container app named *album-api*, setting the revision suffix name to 1st-revision would create a revision with the name *album-api--1st-revision*. You can set the revision suffix in the ARM template, through the Azure CLI `az containerapp create` and `az containerapp update` commands, or when creating a revision via the Azure portal.
 
 #### Updating your container app
 
@@ -971,8 +971,7 @@ An updated or deleted secret doesn't automatically affect existing revisions in 
 
 Before you delete a secret, deploy a new revision that no longer references the old secret. Then deactivate all revisions that reference the secret.
 
-> [!NOTE]  
-> Container Apps doesn't support Azure Key Vault integration. Instead, enable managed identity in the container app and use the Key Vault SDK in your app to access secrets.
+> **Note**: Container Apps doesn't support Azure Key Vault integration. Instead, enable managed identity in the container app and use the Key Vault SDK in your app to access secrets.
 
 ##### Defining secrets
 
@@ -1018,7 +1017,7 @@ Dapr is an open source, [Cloud Native Computing Foundation (CNCF)](https://www.c
 
 #### Dapr APIs
 
-![alt text](image-4.png)
+![alt text](./assets/image-4.png)
 
 | **Dapr API** | **Description** |
 |--------------|------------------|
@@ -1031,14 +1030,13 @@ Dapr is an open source, [Cloud Native Computing Foundation (CNCF)](https://www.c
 | [Secrets](https://docs.dapr.io/developing-applications/building-blocks/secrets/secrets-overview/) | Access secrets from your application code or reference secure values in your Dapr components. |
 | [Configuration](https://docs.dapr.io/developing-applications/building-blocks/configuration/) | Retrieve and subscribe to application configuration items for supported configuration stores. |
 
-> **Note**  
-> The table covers stable Dapr APIs. To learn more about using alpha APIs and features, [visit limitations](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#unsupported-dapr-capabilities).
+> **Note**: The table covers stable Dapr APIs. To learn more about using alpha APIs and features, [visit limitations](https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#unsupported-dapr-capabilities).
 
 #### Dapr core concepts
 
 The following example based on the Pub/sub API is used to illustrate core concepts related to Dapr in Azure Container Apps.
 
-![alt text](image-5.png)
+![alt text](./assets/image-5.png)
 
 | **Label** | **Dapr settings** | **Description** |
 |-----------|--------------------|-----------------|
