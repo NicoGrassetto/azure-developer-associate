@@ -194,9 +194,8 @@ We're not going to cover the Dockerfile file specification. Visit the [Dockerfil
         --name <myContainerRegistry> --sku Basic
     ```
 
-    > [!NOTE]
-    > The command creates a *Basic* registry, a cost-optimized option for developers learning about Azure Container Registry.
- >
+    > **Note**: The command creates a *Basic* registry, a cost-optimized option for developers learning about Azure Container Registry.
+    
 #### Build and push image from a Dockerfile
 
 Now use Azure Container Registry to build and push an image based on a local Dockerfile.
