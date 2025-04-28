@@ -16,7 +16,7 @@ Azure Key Vault helps solve the following problems:
 Azure Key Vault has two service tiers: Standard, which encrypts with a software key, and a Premium tier, which includes hardware security module(HSM)-protected keys. To see a comparison between the Standard and Premium tiers, see the [Azure Key Vault pricing page](https://azure.microsoft.com/en-gb/pricing/details/key-vault/).
 
 #### Key benefits of using Azure Key Vault
-- Centralized application secrets: Centralizing storage of application secrets in Azure Key Vault allows you to control their distribution. For example, instead of storing the connection string in the app's code you can store it securely in Key Vault. Your applications can securely access the information they need by using URIs. These URIs allow the applications to retrieve specific versions of a secret.
+- **Centralized application secrets**: Centralizing storage of application secrets in Azure Key Vault allows you to control their distribution. For example, instead of storing the connection string in the app's code you can store it securely in Key Vault. Your applications can securely access the information they need by using URIs. These URIs allow the applications to retrieve specific versions of a secret.
 
 - **Securely store secrets and keys**: Access to a key vault requires proper authentication and authorization before a caller (user or application) can get access. Authentication is done via Microsoft Entra ID. Authorization may be done via Azure role-based access control (Azure RBAC) or Key Vault access policy. Azure RBAC can be used for both management of the vaults and to access data stored in a vault, while key vault access policy can only be used when attempting to access data stored in a vault. Azure Key Vaults may be either software-protected or, with the Azure Key Vault Premium tier, hardware-protected by hardware security modules (HSMs).
 
@@ -33,11 +33,118 @@ Azure Key Vault has two service tiers: Standard, which encrypts with a software 
     - Providing standard Azure administration options via the portal, Azure CLI and PowerShell.
     - Automating certain tasks on certificates that you purchase from Public CAs, such as enrollment and renewal.
 ### Discover Azure Key Vault best practices
+Azure Key Vault is a tool for securely storing and accessing secrets. A secret is anything that you want to tightly control access to, such as API keys, passwords, or certificates. A vault is logical group of secrets.
 
+### Authentication
+To do any operations with Key Vault, you first need to authenticate to it. There are three ways to authenticate to Key Vault:
+
+- **Managed identities for Azure resources**: When you deploy an app on a virtual machine in Azure, you can assign an identity to your virtual machine that has access to Key Vault. You can also assign identities to other Azure resources. The benefit of this approach is that the app or service isn't managing the rotation of the first secret. Azure automatically rotates the service principal client secret associated with the identity. We recommend this approach as a best practice.
+
+- **Service principal and certificate**: You can use a service principal and an associated certificate that has access to Key Vault. We don't recommend this approach because the application owner or developer must rotate the certificate.
+
+- **Service principal and secret**: Although you can use a service principal and a secret to authenticate to Key Vault, we don't recommend it. It's hard to automatically rotate the bootstrap secret that's used to authenticate to Key Vault.
+  
+### Encryption of data in transit
+Azure Key Vault enforces Transport Layer Security (TLS) protocol to protect data when it’s traveling between Azure Key Vault and clients. Clients negotiate a TLS connection with Azure Key Vault. TLS provides strong authentication, message privacy, and integrity (enabling detection of message tampering, interception, and forgery), interoperability, algorithm flexibility, and ease of deployment and use.
+
+Perfect Forward Secrecy (PFS) protects connections between customers’ client systems and Microsoft cloud services by unique keys. Connections also use RSA-based 2,048-bit encryption key lengths. This combination makes it difficult for someone to intercept and access data that is in transit.
+
+### Azure Key Vault best practices
+- **Use separate key vaults**: Recommended using a vault per application per environment (Development, Pre-Production and Production). This pattern helps you not share secrets across environments and also reduces the threat if there is a breach.
+
+- **Control access to your vault**: Key Vault data is sensitive and business critical, you need to secure access to your key vaults by allowing only authorized applications and users.
+
+- **Backup**: Create regular back ups of your vault on update/delete/create of objects within a Vault.
+
+- **Logging**: Be sure to turn on logging and alerts.
+
+- **Recovery options**: Turn on soft-delete and purge protection if you want to guard against force deletion of the secret.
 ### Authenticate to Azure Key Vault
+Authentication with Key Vault works with Microsoft Entra ID, which is responsible for authenticating the identity of any given security principal.
 
+For applications, there are two ways to obtain a service principal:
+
+- Enable a system-assigned **managed identity** for the application. With managed identity, Azure internally manages the application's service principal and automatically authenticates the application with other Azure services. Managed identity is available for applications deployed to various services.
+
+- If you can't use managed identity, you instead register the application with your Microsoft Entra tenant. Registration also creates a second application object that identifies the app across all tenants.
+
+> **Note**: It is recommended to use a system-assigned managed identity.
+
+The following is information on authenticating to Key Vault without using a managed identity.
+
+#### Authentication to Key Vault in application code
+Key Vault SDK is using Azure Identity client library, which allows seamless authentication to Key Vault across environments with same code. The table below provides information on the Azure Identity client libraries:
+
+| .NET                  | Python                  | Java                  | JavaScript                  |
+|-----------------------|-------------------------|-----------------------|-----------------------------|
+| [Azure Identity SDK .NET](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme?view=azure-dotnet) | [Azure Identity SDK Python](https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme?view=azure-python) | [Azure Identity SDK Java](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme?view=azure-java-stable) | [Azure Identity SDK JavaScript](https://learn.microsoft.com/en-us/javascript/api/overview/azure/identity-readme?view=azure-node-latest) |
+
+
+#### Authentication to Key Vault with REST
+Access tokens must be sent to the service using the HTTP Authorization header:
+
+```http
+PUT /keys/MYKEY?api-version=<api_version>  HTTP/1.1  
+Authorization: Bearer <access_token>
+```
+
+When an access token isn't supplied, or when a token isn't accepted by the service, an ``HTTP 401`` error is returned to the client and will include the ``WWW-Authenticate`` header, for example:
+
+```http
+401 Not Authorized  
+WWW-Authenticate: Bearer authorization="…", resource="…"
+```
+The parameters on the ``WWW-Authenticate`` header are:
+
+- authorization: The address of the OAuth2 authorization service that may be used to obtain an access token for the request.
+
+- resource: The name of the resource (``https://vault.azure.net``) to use in the authorization request.
+  
+#### Other resources
+- [Azure Key Vault developer's guide](https://learn.microsoft.com/en-us/azure/key-vault/general/developers-guide)
+- [Azure Key Vault availability and redundancy](https://learn.microsoft.com/en-us/azure/key-vault/general/disaster-recovery-guidance)
 ### Exercise: Set and retrieve a secret from Azure Key Vault by using Azure CLI
+#### Create a Key Vault
+1. Let's set some variables for the CLI commands to use to reduce the amount of retyping. Replace the ``<myLocation>`` variable string with a region that makes sense for you. The Key Vault name needs to be a globally unique name, and the following script generates a random string.
 
+    ```bash
+    myKeyVault=az204vault-$RANDOM
+    myLocation=<myLocation>
+    ```
+
+2. Create a resource group.
+
+    ```bash
+    az group create --name az204-vault-rg --location $myLocation
+    ```
+
+3. Create a Key Vault by using the ``az keyvault create`` command.
+    ```bash
+    az keyvault create --name $myKeyVault --resource-group az204-vault-rg --location $myLocation
+    ```
+    > **Note**: This can take a few minutes to run.
+#### Add and retrieve a secret
+To add a secret to the vault, you just need to take a couple of extra steps.
+
+1. Create a secret. Let's add a password that could be used by an app. The password is called **ExamplePassword** and will store the value of **hVFkk965BuUv** in it.
+
+    ```bash
+    az keyvault secret set --vault-name $myKeyVault --name "ExamplePassword" --value "hVFkk965BuUv"
+    ```
+2. Use the ``az keyvault secret show`` command to retrieve the secret.
+    ```bash
+    az keyvault secret show --name "ExamplePassword" --vault-name $myKeyVault
+    ```
+    This command returns some JSON. The last line contains the password in plain text.
+    ```json
+    "value": "hVFkk965BuUv"
+    ```
+You've created a Key Vault, stored a secret, and retrieved it.
+#### Clean up resources
+If you no longer need the resources in this exercise use the following command to delete the resource group and associated Key Vault.
+ ```bash
+az group delete --name az204-vault-rg --no-wait
+ ```
 ## Implement managed identities
 
 ### Introduction
@@ -111,7 +218,6 @@ In this unit, you learn how managed identities work with Azure virtual machines.
 3. Azure Resource Manager receives a request to configure the user-assigned managed identity on a virtual machine and updates the Azure Instance Metadata Service identity endpoint with the user-assigned managed identity service principal client ID and certificate.
 
 4. After the user-assigned managed identity is created, use the service principal information to grant the identity access to Azure resources. To call Azure Resource Manager, use role-based access control in Microsoft Entra ID to assign the appropriate role to the service principal of the user-assigned identity. To call Key Vault, grant your code access to the specific secret or key in Key Vault.
-
     > **Note**: You can also do this step before step 3.
 
 5. Your code that's running on the virtual machine can request a token from the Azure Instance Metadata Service identity endpoint, accessible only from within the virtual machine: `http://169.254.169.254/metadata/identity/oauth2/token`
