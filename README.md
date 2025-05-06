@@ -11,7 +11,5 @@ This repository contains training materials for the Azure Developer Associate ce
 - implement-api-management
 - implement-azure-app-service-web-apps
 - implement-azure-functions
-- implement-containerized-solutions
-- implement-secure-azure-solutions
 - implement-user-authentication-and-authorization
 - troubleshoot-solutions-by-using-application-insights
