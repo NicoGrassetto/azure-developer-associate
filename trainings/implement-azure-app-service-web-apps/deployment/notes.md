@@ -60,7 +60,7 @@ The _pricing tier_ of an App Service plan determines what App Service features
 - **Dedicated compute**: The **Basic**, **Standard**, **Premium**, **PremiumV2**, and **PremiumV3** tiers run apps on dedicated Azure VMs. Only apps in the same App Service plans share the same compute resources. The higher the tier, the more VM instances are available to you for scale-out.
 - **Isolated**: The **Isolated** and **IsolatedV2** tiers run dedicated Azure VMs on dedicated Azure Virtual Networks. It provides network isolation on top of compute isolation to your apps. It provides the maximum scale-out capabilities.
 
- >**Note**: App Service Free and Shared (preview) hosting plans are base tiers that run on the same Azure virtual machines as other App Service apps. Some apps might belong to other customers. These tiers are intended to be used only for development and testing purposes.
+>**Note**: App Service Free and Shared (preview) hosting plans are base tiers that run on the same Azure virtual machines as other App Service apps. Some apps might belong to other customers. These tiers are intended to be used only for development and testing purposes.
 
 #### How does my app run and scale?
 
@@ -175,7 +175,7 @@ The platform middleware handles several things for your app:
 
 The module runs separately from your application code and can be configured using Azure Resource Manager settings or using a configuration file. No SDKs, specific programming languages, or changes to your application code are required.
 
- >**Note**: In Linux and containers the authentication and authorization module runs in a separate container, isolated from your application code. Because it doesn't run in-process, no direct integration with specific language frameworks is possible.
+>**Note**: In Linux and containers the authentication and authorization module runs in a separate container, isolated from your application code. Because it doesn't run in-process, no direct integration with specific language frameworks is possible.
 
 ##### Authentication flow
 
@@ -204,7 +204,7 @@ In the Azure portal, you can configure App Service with many behaviors when an i
 - **Allow unauthenticated requests:** This option defers authorization of unauthenticated traffic to your application code. For authenticated requests, App Service also passes along authentication information in the HTTP headers. This option provides more flexibility in handling anonymous requests. It lets you present multiple sign-in providers to your users.
     
 - **Require authentication:** This option rejects any unauthenticated traffic to your application. This rejection can be a redirect action to one of the configured identity providers. In these cases, a browser client is redirected to `/.auth/login/<provider>` for the provider you choose. If the anonymous request comes from a native mobile app, the returned response is an `HTTP 401 Unauthorized`. You can also configure the rejection to be an `HTTP 401 Unauthorized` or `HTTP 403 Forbidden` for all requests.
-    > **Caution**: Restricting access in this way applies to all calls to your app, which may not be desirable for apps wanting a publicly available home page, as in many single-page applications.
+    >**Caution**: Restricting access in this way applies to all calls to your app, which may not be desirable for apps wanting a publicly available home page, as in many single-page applications.
     
 
 ##### Token store
@@ -288,7 +288,7 @@ The `az webapp up` command makes it easy to create and update web apps. When e
 - Create an app with the specified name.
 - Zip deploy files from the current working directory to the web app.
 
- >**Important**:In order to complete this exercise, you need to switch the Cloud Shell to the Classic version. When the Cloud Shell finishes loading select **Settings** from the menu at the top of the Cloud Shell, and then select **Go to Classic version**.
+>**Important**: In order to complete this exercise, you need to switch the Cloud Shell to the Classic version. When the Cloud Shell finishes loading select **Settings** from the menu at the top of the Cloud Shell, and then select **Go to Classic version**.
 
 #### Download the sample app
 
@@ -351,7 +351,7 @@ In this section, you use the sandbox to download the sample app and set variable
     
 2. Open a new tab in your browser and navigate to the app URL (`https://<myAppName>.azurewebsites.net`) and verify the app is running - take note of the title at the top of the page. Leave the browser open on the app for the next section.
     
-     >**Note**: You can copy `<myAppName>.azurewebsites.net` from the output of the previous command, or select the URL in the output to open the site in a new tab.
+    >**Note**: You can copy `<myAppName>.azurewebsites.net` from the output of the previous command, or select the URL in the output to open the site in a new tab.
     
 #### Update and redeploy the app
 
@@ -365,7 +365,7 @@ In this section, you use the sandbox to download the sample app and set variable
     az webapp up -g $resourceGroup -n $appName --html 
     ```
     
-     >**Tip**: You can use the up arrow on your keyboard to scroll through previous commands.
+    >**Tip**: You can use the up arrow on your keyboard to scroll through previous commands.
     
 4. After deployment is completed switch back to the browser from step 2 in the "Create the web app" section and refresh the page.
 
@@ -443,8 +443,6 @@ Adding and editing connection strings follow the same principles as other app se
 ]
 ```
 
->**Note**: .NET apps targeting PostgreSQL should set the connection string to **Custom** as work around for a known issue in .NET `EnvironmentVariablesConfigurationProvider`.
-
 At runtime, connection strings are available as environment variables, prefixed with the following connection types:
 
 - SQLServer: `SQLCONNSTR_`
@@ -464,7 +462,7 @@ For example, a MySQL connection string named _connectionstring1_ can be access
 
 Your custom container might use environment variables that need to be supplied externally. You can pass them in via the Cloud Shell. In Bash:
 
-```
+```bash
 az webapp config appsettings set --resource-group <group-name> --name <app-name> --settings key1=value1 key2=value2
 ```
 
@@ -496,9 +494,9 @@ A list of the currently available settings:
         
     - **HTTP version**: Set to **2.0** to enable support for HTTPS/2 protocol.
         
-         >**Note**: Most modern browsers support HTTP/2 protocol over TLS only, while nonencrypted traffic continues to use HTTP/1.1. To ensure that client browsers connect to your app with HTTP/2, secure your custom DNS name.
+        >**Note**: Most modern browsers support HTTP/2 protocol over TLS only, while nonencrypted traffic continues to use HTTP/1.1. To ensure that client browsers connect to your app with HTTP/2, secure your custom DNS name.
         
-    - **Web sockets**: For ASP.NET SignalR or socket.io, for example.
+    - **WebSockets**: Django Channels, Flask-SocketIO, FastAPI, or pysignalr in Python.
         
     - **Always On**: Keeps the app loaded even when there's no traffic. When **Always On** isn't turned on (default), the app is unloaded after 20 minutes without any incoming requests. The unloaded app can cause high latency for new requests because of its warm-up time. When **Always On** is turned on, the front-end load balancer sends a GET request to the application root every five minutes. The continuous ping prevents the app from being unloaded.
         
@@ -569,12 +567,13 @@ The following table shows the types of logging, the platforms supported, and whe
     
 2. Select **On** for either **Application Logging (Filesystem)** or **Application Logging (Blob)**, or both. The **Filesystem** option is for temporary debugging purposes, and turns itself off in 12 hours. The **Blob** option is for long-term logging, and needs a blob storage container to write logs to.
     
-     >**Note**: If you regenerate your storage account's access keys, you must reset the respective logging configuration to use the updated access keys. To do this turn the logging feature off and then on again.
+    >**Note**: If you regenerate your storage account's access keys, you must reset the respective logging configuration to use the updated access keys. To do this turn the logging feature off and then on again.
     
 3. You can also set the **Level** of details included in the log as shown in the following table.
-    
-  |**Disabled**|None|
-      |**Error**|Error, Critical|
+    |Level|Included categories|
+    |---|---|
+    |**Disabled**|None|
+    |**Error**|Error, Critical|
     |**Warning**|Warning, Error, Critical|
     |**Information**|Info, Warning, Error, Critical|
     |**Verbose**|Trace, Debug, Info, Warning, Error, Critical (all categories)|
@@ -603,16 +602,6 @@ The following table shows the types of logging, the platforms supported, and whe
 #### Add log messages in code
 
 In your application code, you use the usual logging facilities to send log messages to the application logs. For example:
-
-- ASP.NET applications can use the `System.Diagnostics.Trace` class to log information to the application diagnostics log. For example:
-    
-    C#Copy
-    
-    ```
-    System.Diagnostics.Trace.TraceError("If you're seeing this, something bad happened");
-    ```
-    
-    By default, ASP.NET Core uses the `Microsoft.Extensions.Logging.AzureAppServices` logging provider.
     
 - Python applications can use the [OpenCensus package](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opencensus-python) to send logs to the application diagnostics log.
     
@@ -621,17 +610,15 @@ In your application code, you use the usual logging facilities to send log messa
 
 Before you stream logs in real time, enable the log type that you want. Any information written to files ending in .txt, .log, or .htm that are stored in the `/LogFiles` directory (`d:/home/logfiles`) is streamed by App Service.
 
- Note
-
-Some types of logging buffer write to the log file, which can result in out of order events in the stream. For example, an application log entry that occurs when a user visits a page may be displayed in the stream before the corresponding HTTP log entry for the page request.
+> **Note**: Some types of logging buffer write to the log file, which can result in out of order events in the stream. For example, an application log entry that occurs when a user visits a page may be displayed in the stream before the corresponding HTTP log entry for the page request.
 
 - Azure portal - To stream logs in the Azure portal, navigate to your app and select **Log stream**.
     
 - Azure CLI - To stream logs live in Cloud Shell, use the following command:
     
-    BashCopy
     
-    ```
+    
+    ```bash
     az webapp log tail --name appname --resource-group myResourceGroup
     ```
     
@@ -685,9 +672,7 @@ To create custom TLS/SSL bindings or enable client certificates for your App Ser
 
 The free App Service managed certificate is a turn-key solution for securing your custom DNS name in App Service. It's a TLS/SSL server certificate fully managed by App Service and renewed continuously and automatically in six-month increments, 45 days before expiration. You create the certificate and bind it to a custom domain, and let App Service do the rest.
 
- Important
-
-Before you create a free managed certificate, make sure you meet the prerequisites for your app. Free certificates are issued by DigiCert. For some domains, you must explicitly allow DigiCert as a certificate issuer by creating a CAA domain record with the value: `0 issue digicert.com`. Azure fully manages the certificates on your behalf, so any aspect of the managed certificate, including the root issuer, can change at any time. These changes are outside your control. Make sure to avoid hard dependencies and "pinning" practice certificates to the managed certificate or any part of the certificate hierarchy.
+>**Important**: Before you create a free managed certificate, make sure you meet the prerequisites for your app. Free certificates are issued by DigiCert. For some domains, you must explicitly allow DigiCert as a certificate issuer by creating a CAA domain record with the value: `0 issue digicert.com`. Azure fully manages the certificates on your behalf, so any aspect of the managed certificate, including the root issuer, can change at any time. These changes are outside your control. Make sure to avoid hard dependencies and "pinning" practice certificates to the managed certificate or any part of the certificate hierarchy.
 
 The free certificate comes with the following limitations:
 
@@ -714,9 +699,7 @@ If you already have a working App Service certificate, you can:
 - Import the certificate into App Service.
 - Manage the certificate, such as renew, rekey, and export it.
 
- Note
-
-App Service Certificates aren't supported in Azure National Clouds at this time.
+>**Note**: App Service Certificates aren't supported in Azure National Clouds at this time.
 
 
 ## Scale apps in Azure App Service
@@ -1149,8 +1132,6 @@ Tasks performed in this exercise:
 - Make a change to the sample app and deploy it to the staging slot.
 - Swap the staging and default production slots to move the changes to the production slot.
 
-This exercise takes approximately **30** minutes to complete.
-
 #### Before you start
 
 To complete the exercise you need:
@@ -1171,13 +1152,13 @@ In this section you download the sample app and set variables to make the comman
     
 4. Run the following **git** command to clone the sample app repository.
     
-    ```
+    ```bash
     git clone https://github.com/Azure-Samples/html-docs-hello-world.git
     ```
     
 5. Set variables to hold the resource group and app names by running the following commands. Make note of the value of the **appName** that is displayed after the commands run, you'll need it later in this exercise.
     
-    ```
+    ```bash
     resourceGroup=rg-mywebapp
     
     appName=mywebapp$RANDOM
@@ -1186,7 +1167,7 @@ In this section you download the sample app and set variables to make the comman
     
 6. Navigate to the directory that contains the sample code and run the **az webapp up** command. **Note:** This command might take a few minutes to run.
     
-    ```
+    ```bash
     cd html-docs-hello-world
     
     az webapp up -g $resourceGroup -n $appName --sku P0V3 --html
@@ -1209,7 +1190,7 @@ In this section you create a deployment slot, modify the HTML in the app, and de
     
 2. Enter the following command in the cloud shell to create a deployment slot named _staging_.
     
-    ```
+    ```bash
     az webapp deployment slot create -n $appName -g $resourceGroup --slot staging
     ```
     
@@ -1226,13 +1207,13 @@ In this section you create a deployment slot, modify the HTML in the app, and de
     
 3. In the cloud shell run the following command to create a zip file of the updated project. A zip, or a web application resource (WAR), file is needed for the next step.
     
-    ```
+    ```bash
     zip -r stagingcode.zip .
     ```
     
 4. Run the following command in the cloud shell to deploy your updates to the staging slot.
     
-    ```
+    ```bash
     az webapp deploy -g $resourceGroup -n $appName --src-path ./stagingcode.zip --slot staging
     ```
     
