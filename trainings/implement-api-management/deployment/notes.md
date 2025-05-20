@@ -1,9 +1,12 @@
 # Implement API Management
 ## Explore API Management
 ### Introduction
+
 API Management helps organizations publish APIs to external, partner, and internal developers to unlock the potential of their data and services.
 ### Discover the API Management service
+
 API Management provides the core functionality to ensure a successful API program through developer engagement, business insights, analytics, security, and protection. Each API consists of one or more operations, and each API can be added to one or more products. To use an API, developers subscribe to a product that contains that API, and then they can call the API's operation, subject to any usage policies that might be in effect.
+
 #### API Management components
 
 Azure API Management is made up of an _API gateway_, a _management plane_, and a _developer portal_. These components are Azure-hosted and fully managed by default. API Management is available in various [tiers](https://learn.microsoft.com/en-us/azure/api-management/api-management-features) differing in capacity and features.
@@ -60,6 +63,7 @@ Policy expressions can be used as attribute values or text values in any of the 
 Policies can be applied at different scopes, depending on your needs: global (all APIs), a product, a specific API, or an API operation.
 
 ### Explore API gateways
+
 Your solution may contain several front- and back-end services. In this scenario, how does a client know what endpoints to call? What happens when new services are introduced, or existing services are refactored? How do services handle SSL termination, authentication, and other concerns?
 
 The API Management gateway (also called data plane or runtime) is the service component that's responsible for proxying API requests, applying policies, and collecting telemetry.
@@ -84,9 +88,11 @@ API Management offers both managed and self-hosted gateways:
 - **Self-hosted** - The self-hosted gateway is an optional, containerized version of the default managed gateway. It's useful for hybrid and multicloud scenarios where there's a requirement to run the gateways off of Azure in the same environments where API backends are hosted. The self-hosted gateway enables customers with hybrid IT infrastructure to manage APIs hosted on-premises and across clouds from a single API Management service in Azure.
 
 ### Explore API Management policies
+
 In Azure API Management, policies allow the publisher to change the behavior of the API through configuration. Policies are a collection of Statements that are executed sequentially on the request or response of an API.
 
 Policies are applied inside the gateway that sits between the API consumer and the managed API. The gateway receives all requests and usually forwards them unaltered to the underlying API. However a policy can apply changes to both the inbound request and outbound response. Policy expressions can be used as attribute values or text values in any of the API Management policies, unless the policy specifies otherwise.
+
 #### Understanding policy configuration
 
 The policy definition is a simple XML document that describes a sequence of inbound and outbound statements. The XML can be edited directly in the definition window.
@@ -110,7 +116,9 @@ The configuration is divided into `inbound`, `backend`, `outbound`, and `on-
   </on-error>
 </policies>
 ```
+
 If there's an error during the processing of a request, any remaining steps in the `inbound`, `backend`, or `outbound` sections are skipped and execution jumps to the statements in the `on-error` section. By placing policy statements in the `on-error` section you can review the error by using the `context.LastError` property, inspect and customize the error response using the `set-body` policy, and configure what happens if an error occurs.
+
 #### Policy expressions
 
 Unless the policy specifies otherwise, policy expressions can be used as attribute values or text values in any of the API Management policies. A policy expression is either:
@@ -123,6 +131,7 @@ Each expression has access to the implicitly provided `context` variable and a
 [Policy expressions](https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions) provide a sophisticated means to control traffic and modify API behavior without requiring you to write specialized code or modify backend services.
 
 The following example uses policy expressions and the set-header policy to add user data to the incoming request. The added header includes the user ID associated with the subscription key in the request, and the region where the gateway processing the request is hosted.
+
 
 ```xml
 <policies>
@@ -140,6 +149,7 @@ The following example uses policy expressions and the set-header policy to add u
 
 If you have a policy at the global level and a policy configured for an API, then whenever that particular API is used both policies are applied. API Management allows for deterministic ordering of combined policy statements via the base element.
 
+
 ```xml
 <policies>
     <inbound>
@@ -149,6 +159,7 @@ If you have a policy at the global level and a policy configured for an API, the
     </inbound>
 </policies>
 ```
+
 In the previous example policy definition, The `cross-domain` statement would execute first. The `find-and-replace` policy would execute after any policies at a broader scope.
 
 #### Filter response content
@@ -156,6 +167,7 @@ In the previous example policy definition, The `cross-domain` statement would 
 The policy defined in following example demonstrates how to filter data elements from the response payload based on the product associated with the request.
 
 The snippet assumes that response content is formatted as JSON and contains root-level properties named _minutely_, _hourly_, _daily_, and _flags_.
+
 
 ```xml
 <policies>
@@ -187,7 +199,9 @@ The snippet assumes that response content is formatted as JSON and contains root
   </on-error>
 </policies>
 ```
+
 ### Create advanced policies
+
 This unit provides a reference for the following API Management policies:
 
 - Control flow - Conditionally applies policy statements based on the results of the evaluation of Boolean expressions.
@@ -196,9 +210,11 @@ This unit provides a reference for the following API Management policies:
 - Log to Event Hub - Sends messages in the specified format to an Event Hub defined by a Logger entity.
 - Mock response - Aborts pipeline execution and returns a mocked response directly to the caller.
 - Retry - Retries execution of the enclosed policy statements, if and until the condition is met. Execution repeats at the specified time intervals and up to the specified retry count.
+
 #### Control flow
 
 The `choose` policy applies enclosed policy statements based on the outcome of evaluation of boolean expressions, similar to an if-then-else or a switch construct in a programming language.
+
 
 ```xml
 <choose>
@@ -213,7 +229,9 @@ The `choose` policy applies enclosed policy statements based on the outcome of
 </otherwise>
 </choose>
 ```
+
 The control flow policy must contain at least one `<when/>` element. The `<otherwise/>` element is optional. Conditions in `<when/>` elements are evaluated in order of their appearance within the policy. Policy statements enclosed within the first `<when/>` element are applied when the condition attribute is true. Policies enclosed within the `<otherwise/>` element, if present, are applied if all of the `<when/>` element condition attributes are false.
+
 #### Forward request
 
 The `forward-request` policy forwards the incoming request to the backend service specified in the request context. The backend service URL is specified in the API settings and can be changed using the set backend service policy.
@@ -223,6 +241,18 @@ Removing this policy results in the request not being forwarded to the backend s
 ```xml
 <forward-request timeout="time in seconds" follow-redirects="true | false"/>
 ```
+
+#### Limit concurrency
+
+The `limit-concurrency` policy prevents enclosed policies from executing by more than the specified number of requests at any time. When requests exceed that number, new requests fail immediately with a _429 Too Many Requests_ status code.
+
+
+```xml
+<limit-concurrency key="expression" max-count="number">
+        <!— nested policy statements -->
+</limit-concurrency>
+```
+
 #### Log to Event Hub
 
 The `log-to-eventhub` policy sends messages in the specified format to an Event Hub defined by a Logger entity. As its name implies, the policy is used for saving selected request or response context information for online or offline analysis.
@@ -232,16 +262,20 @@ The `log-to-eventhub` policy sends messages in the specified format to an Even
   Expression returning a string to be logged
 </log-to-eventhub>
 ```
+
 #### Mock response
 
 The `mock-response`, as the name implies, is used to mock APIs and operations. It aborts normal pipeline execution and returns a mocked response to the caller. The policy always tries to return responses of highest fidelity. It prefers response content examples, whenever available. It generates sample responses from schemas, when schemas are provided and examples aren't. If examples or schemas aren't found, responses with no content are returned.
 
+
 ```xml
 <mock-response status-code="code" content-type="media type"/>
 ```
+
 #### Retry
 
 The `retry` policy executes its child policies once and then retries their execution until the retry `condition` becomes `false` or retry `count` is exhausted.
+
 
 ```xml
 <retry
@@ -254,9 +288,11 @@ The `retry` policy executes its child policies once and then retries their exe
         <!-- One or more child policies. No restrictions -->
 </retry>
 ```
+
 #### Return response
 
 The `return-response` policy aborts pipeline execution and returns either a default or custom response to the caller. Default response is `200 OK` with no body. Custom response can be specified via a context variable or policy statements. When both are provided, the policy statement modifies the context variable before being returned to the caller.
+
 
 ```xml
 <return-response response-variable-name="existing context variable">
@@ -265,16 +301,19 @@ The `return-response` policy aborts pipeline execution and returns either a de
   <set-status/>
 </return-response>
 ```
+
 #### Other resources
 
 - Visit [API Management policies](https://learn.microsoft.com/en-us/azure/api-management/api-management-policies) for more policy examples.
 - [Error handling in API Management policies](https://learn.microsoft.com/en-us/azure/api-management/api-management-error-handling-policies)
 
 ### Secure APIs by using subscriptions
+
 When you publish APIs through API Management, it's easy and common to secure access to those APIs by using subscription keys. Developers who need to consume the published APIs must include a valid subscription key in HTTP requests when they make calls to those APIs. The API Management gateway rejects calls without a subscription key and the calls aren't forwarded to the back-end services.
 
 To get a subscription key for accessing APIs, a subscription is required. A subscription is essentially a named container for a pair of subscription keys. Developers who need to consume the published APIs can get subscriptions. And they don't need approval from API publishers. API publishers can also create subscriptions directly for API consumers.
-> **Note**: API Management also supports other mechanisms for securing access to APIs, including: OAuth2.0, Client certificates, and IP allow listing.
+
+>**Note**: API Management also supports other mechanisms for securing access to APIs, including: OAuth2.0, Client certificates, and IP allow listing.
 
 #### Subscriptions and Keys
 
@@ -284,7 +323,7 @@ The three main subscription scopes are:
 
 |Scope|Details|
 |---|---|
-|All APIs | Applies to every API accessible from the gateway|
+|All APIs|Applies to every API accessible from the gateway|
 |Single API|This scope applies to a single imported API and all of its endpoints|
 |Product|A product is a collection of one or more APIs that you configure in API Management. You can assign APIs to more than one product. Products can have different access rules, usage quotas, and terms of use.|
 
@@ -292,7 +331,7 @@ Applications that call a protected API must include the key in every request.
 
 You can regenerate these subscription keys at any time, for example, if you suspect that a key has been shared with unauthorized users.
 
-![alt text](https://learn.microsoft.com/en-gb/training/wwl-azure/explore-api-management/media/subscription-keys.png)
+![Image showing the Subscriptions screen.](https://learn.microsoft.com/en-gb/training/wwl-azure/explore-api-management/media/subscription-keys.png)
 
 Every subscription has two keys, a primary and a secondary. Having two keys makes it easier when you do need to regenerate a key. For example, if you want to change the primary key and avoid downtime, use the secondary key in your apps.
 
@@ -306,9 +345,10 @@ The default header name is **Ocp-Apim-Subscription-Key**, and the default query
 
 To test out your API calls, you can use the developer portal, or command-line tools, such as **curl**. Here's an example of a `GET` request using the developer portal, which shows the subscription key header:
 
-![alt text](https://learn.microsoft.com/en-gb/training/wwl-azure/explore-api-management/media/key-header-portal.png)
+![Call API from developer portal](https://learn.microsoft.com/en-gb/training/wwl-azure/explore-api-management/media/key-header-portal.png)
 
 Here's how you can pass a key in the request header using **curl**:
+
 
 ```bash
 curl --header "Ocp-Apim-Subscription-Key: <key string>" https://<apim gateway>.azure-api.net/api/path
@@ -316,12 +356,17 @@ curl --header "Ocp-Apim-Subscription-Key: <key string>" https://<apim gateway>.a
 
 Here's an example **curl** command that passes a key in the URL as a query string:
 
+
 ```bash
 curl https://<apim gateway>.azure-api.net/api/path?subscription-key=<key string>
 ```
+
 If the key isn't passed in the header, or as a query string in the URL, you get a **401 Access Denied** response from the API gateway.
+
 ### Secure APIs by using certificates
+
 Certificates can be used to provide Transport Layer Security (TLS) mutual authentication between the client and the API gateway. You can configure the API Management gateway to allow only requests with certificates containing a specific thumbprint. The authorization at the gateway level is handled through inbound policies.
+
 #### Transport Layer Security client authentication
 
 With TLS client authentication, the API Management gateway can inspect the certificate contained within the client request and check for properties like:
@@ -339,6 +384,7 @@ Client certificates are signed to ensure that they aren't tampered with. When a 
 
 - Check who issued the certificate. If the issuer was a certificate authority that you trust, you can use the certificate. You can configure the trusted certificate authorities in the Azure portal to automate this process.
 - If the certificate is issued by the partner, verify that it came from them. For example, if they deliver the certificate in person, you can be sure of its authenticity. These are known as self-signed certificates.
+
 #### Accepting client certificates in the Consumption tier
 
 The Consumption tier in API Management is designed to conform with serverless design principals. If you build your APIs from serverless technologies, such as Azure Functions, this tier is a good fit. In the Consumption tier, you must explicitly enable the use of client certificates, which you can do on the **Custom domains** page. This step isn't necessary in other tiers.
@@ -393,9 +439,12 @@ This example checks the issuer and subject of the certificate passed in the requ
 </choose>
 ```
 ### Exercise - Create a backend API
-#### Create an API Management instance
-1. Let's set some variables for the CLI commands to use to reduce the amount of retyping. Replace `<myLocation>` with a region that makes sense for you. The APIM name needs to be a globally unique name, and the following script generates a random string. Replace `<myEmail>` with an email address you can access.
 
+#### Create an API Management instance
+
+1. Let's set some variables for the CLI commands to use to reduce the amount of retyping. Replace `<myLocation>` with a region that makes sense for you. The APIM name needs to be a globally unique name, and the following script generates a random string. Replace `<myEmail>` with an email address you can access.
+    
+    
     ```bash
     myApiName=az204-apim-$RANDOM
     myLocation=<myLocation>
@@ -404,7 +453,6 @@ This example checks the issuer and subject of the certificate passed in the requ
     
 2. Create a resource group. The following commands create a resource group named _az204-apim-rg_.
     
-
     
     ```bash
     az group create --name az204-apim-rg --location $myLocation
@@ -412,7 +460,6 @@ This example checks the issuer and subject of the certificate passed in the requ
     
 3. Create an APIM instance. The `az apim create` command is used to create the instance. The `--sku-name Consumption` option is used to speed up the process for the walkthrough.
     
-
     
     ```bash
     az apim create -n $myApiName \
@@ -424,7 +471,10 @@ This example checks the issuer and subject of the certificate passed in the requ
     ```
     
     >**Note**: The operation should complete in about five minutes.
+    
+
 #### Import a backend API
+
 This section shows how to import and publish an OpenAPI specification backend API.
 
 1. In the Azure portal, search for and select **API Management services**.
@@ -441,8 +491,6 @@ This section shows how to import and publish an OpenAPI specification backend AP
     
     Use the values from the following table to fill out the form. You can leave any fields not mentioned their default value.
     
-    Expand table
-    
     |Setting|Value|Description|
     |---|---|---|
     |**OpenAPI Specification**|`https://bigconference.azurewebsites.net/`|References the service implementing the API, requests are forwarded to this address. Most of the necessary information in the form is automatically populated after you enter this.|
@@ -451,7 +499,10 @@ This section shows how to import and publish an OpenAPI specification backend AP
     |**Description**|Automatically populated|Provide an optional description of the API.|
     
 5. Select **Create**.
+    
+
 #### Configure the API settings
+
 The _Big Conference API_ is created. Configure the API settings.
 
 1. Select **Settings** in the blade to the right.
@@ -463,7 +514,10 @@ The _Big Conference API_ is created. Configure the API settings.
     ![Specify the backend URL for the API.](https://learn.microsoft.com/en-gb/training/wwl-azure/explore-api-management/media/api-settings-backend.png)
     
 4. Select **Save**.
+    
+
 #### Test the API
+
 Now that the API has been imported and configured it's time to test the API.
 
 1. Select **Test**.
@@ -475,9 +529,12 @@ Now that the API has been imported and configured it's time to test the API.
 3. Select **Send**.
     
     Backend responds with **200 OK** and some data.
+    
+
 #### Clean up Azure resources
 
 When you're finished with the resources you created in this exercise you can use the following command to delete the resource group and all related resources.
+
 
 ```bash
 az group delete --name az204-apim-rg
