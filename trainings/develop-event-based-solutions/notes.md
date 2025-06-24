@@ -864,3 +864,254 @@ async def main():
 # To run the async function:
 # asyncio.run(main())
 ```
+
+### Send and retrieve events from Azure Event Hubs
+
+#### Create Azure Event Hubs resources
+
+    ```
+    az group create --name myResourceGroup --location eastus
+    ```
+    
+2. Many of the commands require unique names and use the same parameters. Creating some variables will reduce the changes needed to the commands that create resources. Run the following commands to create the needed variables. Replace **myResourceGroup** with the name you you're using for this exercise. If you changed the location in the previous step, make the same change in the **location** variable.
+
+    
+    ```
+    resourceGroup=myResourceGroup
+    location=eastus
+    namespaceName=eventhubsns$RANDOM
+    ```
+    
+
+##### Create an Azure Event Hubs namespace and event hub
+
+An Azure Event Hubs namespace is a logical container for event hub resources within Azure. It provides a unique scoping container where you can create one or more event hubs, which are used to ingest, process, and store large volumes of event data. The following instructions are performed in the cloud shell.
+
+1. Run the following command to create an Event Hubs namespace.
+    
+    ```
+    az eventhubs namespace create --name $namespaceName --resource-group $resourceGroup -l $location
+    ```
+    
+2. Run the following command to create an event hub named **myEventHub** in the Event Hubs namespace.
+    
+    ```
+    az eventhubs eventhub create --name myEventHub --resource-group $resourceGroup \
+      --namespace-name $namespaceName
+    ```
+    
+
+##### Assign a role to your Microsoft Entra user name
+
+To allow your app to send and receive messages, assign your Microsoft Entra user to the **Azure Service Bus Data Owner** role at the Service Bus namespace level. This gives your user account permission to manage and access queues and topics using Azure RBAC. Perform the following steps in the cloud shell.
+
+1. Run the following command to retrieve the **userPrincipalName** from your account. This represents who the role will be assigned to.    
+    ```
+    userPrincipal=$(az rest --method GET --url https://graph.microsoft.com/v1.0/me \
+        --headers 'Content-Type=application/json' \
+        --query userPrincipalName --output tsv)
+    ```
+    
+2. Run the following command to retrieve the resource ID of the Service Bus namespace. The resource ID sets the scope for the role assignment to a specific namespace.
+    
+    
+    ```
+    resourceID=$(az eventhubs namespace show --resource-group $resourceGroup \
+        --name $namespaceName --query id --output tsv)
+    ```
+    
+3. Run the following command to create and assign the **Azure Event Hubs Data Owner** role, which gives you permission to send and retrieve events.
+    
+    ```
+    az role assignment create --assignee $userPrincipal \
+        --role "Azure Event Hubs Data Owner" \
+        --scope $resourceID
+    ```
+    
+
+#### Send and retrieve events with a Python console application
+
+Now that the needed resources are deployed to Azure the next step is to set up the console application. The following steps are performed in the cloud shell.
+
+1. Run the following commands to create a directory to contain the project and change into the project directory.
+    
+    ```
+    mkdir eventhubs
+    cd eventhubs
+    ```
+    
+2. Create a new Python script file named `script.py`.
+
+    ```bash
+    touch script.py
+    ```
+
+3. Run the following commands to install the required Azure packages for Python.
+
+    ```bash
+    pip install azure-eventhub
+    pip install azure-identity
+    ```
+    
+
+Now it's time to replace the template code in the **Program.cs** file using the editor in the cloud shell.
+
+##### Add the starter code for the project
+1. Run the following command in the cloud shell to begin editing the application.
+    
+    ```bash
+    code script.py
+    ```
+    
+2. Replace any existing contents with the following code.
+    
+    ```python
+    from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
+    from azure.eventhub import EventData
+    from azure.identity import DefaultAzureCredential
+
+    # TO-DO: Replace YOUR_EVENT_HUB_NAMESPACE with your actual Event Hub namespace
+    namespace_url = "YOUR_EVENT_HUB_NAMESPACE.servicebus.windows.net"
+    event_hub_name = "myEventHub"
+
+    credential_options = {
+        "exclude_environment_credential": True,
+        "exclude_managed_identity_credential": True
+    }
+
+    credential = DefaultAzureCredential(**credential_options)
+
+    # Number of events to be sent to the event hub
+    num_of_events = 3
+
+    # CREATE A PRODUCER CLIENT AND SEND EVENTS
+
+
+
+    # CREATE A CONSUMER CLIENT AND RECEIVE EVENTS
+
+
+    ```
+    
+3. Press **ctrl+s** to save your changes.
+    
+
+##### Add code to complete the application
+
+In this section you add code to create the producer and consumer clients to send and receive events.
+
+1. Locate the **// CREATE A PRODUCER CLIENT AND SEND EVENTS** comment and add the following code directly after the comment:
+    
+    ```python
+    producer = EventHubProducerClient(
+        fully_qualified_namespace=namespace_url,
+        eventhub_name=event_hub_name,
+        credential=credential
+    )
+
+    async def send_events():
+        async with producer:
+            event_data_batch = await producer.create_batch()
+            
+            from random import randint
+            for i in range(num_of_events):
+                random_number = randint(1, 100)  # 1 to 100 inclusive
+                event_body = f"Event {random_number}"
+                try:
+                    event_data_batch.add(EventData(event_body))
+                except ValueError:
+                    raise Exception(f"Event {i} is too large for the batch and cannot be sent.")
+            
+            await producer.send_batch(event_data_batch)
+            print(f"A batch of {num_of_events} events has been published.")
+            input("Press Enter to retrieve and print the events...")
+
+    import asyncio
+    asyncio.run(send_events())
+    ```
+    
+2. Press **ctrl+s** to save your changes.
+    
+3. Locate the **// CREATE A CONSUMER CLIENT AND RECEIVE EVENTS** comment and add the following code directly after the comment:
+    
+    ```python
+    consumer = EventHubConsumerClient(
+        fully_qualified_namespace=namespace_url,
+        eventhub_name=event_hub_name,
+        consumer_group='$Default',
+        credential=credential
+    )
+
+    async def receive_events():
+        print("\nRetrieving all events from the hub...")
+        
+        async with consumer:
+            partition_ids = await consumer.get_partition_ids()
+            total_event_count = 0
+            
+            for partition_id in partition_ids:
+                properties = await consumer.get_partition_properties(partition_id)
+                if properties['last_enqueued_sequence_number'] >= properties['beginning_sequence_number']:
+                    total_event_count += (properties['last_enqueued_sequence_number'] - properties['beginning_sequence_number'] + 1)
+            
+            retrieved_count = 0
+            async for partition_event in consumer.receive_batch(starting_position="-1"):
+                if partition_event.data:
+                    print(f"Retrieved event: {partition_event.data.decode()}")
+                    retrieved_count += 1
+                    if retrieved_count >= total_event_count:
+                        print("Done retrieving events. Press Enter to exit...")
+                        input()
+                        return
+
+    asyncio.run(receive_events())
+    ```
+    
+4. Press **ctrl+s** to save the file, then **ctrl+q** to exit the editor.
+    
+
+#### Sign into Azure and run the app
+
+1. In the cloud shell command-line pane, enter the following command to sign into Azure.
+    
+    
+    ```
+    az login
+    ```
+    
+    **You must sign into Azure - even though the cloud shell session is already authenticated.**
+    
+    > **Note**: In most scenarios, just using _az login_ will be sufficient. However, if you have subscriptions in multiple tenants, you may need to specify the tenant by using the _--tenant_ parameter. See [Sign into Azure interactively using Azure CLI](https://learn.microsoft.com/cli/azure/authenticate-azure-cli-interactively) for details.
+    
+2. Start the application by running the following command:
+    
+    
+    ```
+    python script.py
+    ```
+    
+    After a few seconds you should see output similar to the following example:
+    
+    ```
+    A batch of 3 events has been published.
+    Press Enter to retrieve and print the events...
+    
+    Retrieving all events from the hub...
+    Retrieved event: Event 4
+    Retrieved event: Event 96
+    Retrieved event: Event 74
+    Done retrieving events. Press Enter to exit...
+    ```
+    
+
+The application always sends three events to the hub, but it retrieves all events in the hub. If you run the application multiple times an increasing number of events are retrieved. The random numbers used for event creation help you identify different events.
+
+#### Clean up resources
+
+Now that you finished the exercise, you should delete the cloud resources you created to avoid unnecessary resource usage.
+
+1. Navigate to the resource group you created and view the contents of the resources used in this exercise.
+2. On the toolbar, select **Delete resource group**.
+3. Enter the resource group name and confirm that you want to delete it.
+
+> **CAUTION:** Deleting a resource group deletes all resources contained within it. If you chose an existing resource group for this exercise, any existing resources outside the scope of this
