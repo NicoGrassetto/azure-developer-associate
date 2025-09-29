@@ -781,3 +781,395 @@ Following are links to some tools you can use to build and test requests using M
 
 - [Graph Explorer](https://developer.microsoft.com/graph/graph-explorer)
 - [Postman](https://www.getpostman.com/)
+
+### Query Microsoft Graph by using SDKs
+
+The Microsoft Graph SDKs are designed to simplify building high-quality, efficient, and resilient applications that access Microsoft Graph. The SDKs include two components: a service library and a core library.
+
+The service library contains models and request builders that are generated from Microsoft Graph metadata to provide a rich and discoverable experience.
+
+The core library provides a set of features that enhance working with all the Microsoft Graph services. Embedded support for retry handling, secure redirects, transparent authentication, and payload compression, improve the quality of your application's interactions with Microsoft Graph, with no added complexity, while leaving you completely in control. The core library also provides support for common tasks such as paging through collections and creating batch requests.
+
+#### Install the Microsoft Graph Python SDK
+
+The Microsoft Graph Python SDK is included in the following pip packages:
+
+- [msgraph-sdk-python](https://github.com/microsoftgraph/msgraph-sdk-python) - Contains the models and request builders for accessing the `v1.0` endpoint with a fluent API.
+-  [msgraph-beta-sdk-python](https://github.com/microsoftgraph/msgraph-beta-sdk-python) - Contains the models and request builders for accessing the `beta` endpoint with the fluent API. `Microsoft.Graph.Beta` has a dependency on `Microsoft.Graph.Core`.
+
+#### Create a Microsoft Graph client
+
+The Microsoft Graph client is designed to make it simple to make calls to Microsoft Graph. You can use a single client instance for the lifetime of the application. The following code examples show how to create an instance of a Microsoft Graph client. The authentication provider handles acquiring access tokens for the application. The different application providers support different client scenarios. For details about which provider and options are appropriate for your scenario, see [Choose an Authentication Provider](https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers).
+
+```python
+from azure.identity import DeviceCodeCredential
+
+from msgraph.core import GraphClient
+
+# Define the required scopes
+
+scopes = ["User.Read"]
+
+tenant_id = "common"
+
+client_id = "YOUR_CLIENT_ID"
+
+# Define the callback function to display the device code message
+
+def device_code_callback(device_code):
+
+    print(device_code["message"])
+
+# Create the DeviceCodeCredential
+
+credential = DeviceCodeCredential(
+
+    client_id=client_id,
+
+    tenant_id=tenant_id,
+
+    prompt_callback=device_code_callback
+
+)
+
+# Create the Graph client
+
+graph_client = GraphClient(credential=credential, scopes=scopes)
+
+# Example: Get the current user's profile
+
+response = graph_client.get('/me')
+
+print(response.json())
+```
+
+#### Read information from Microsoft Graph
+
+To retrieve data from Microsoft Graph in Python, you can use the `GraphClient` to send a GET request to the desired endpoint. For example, to access the signed-in user's profile information:
+
+```python
+response = graph_client.get('/me')
+
+print(response.json())
+```
+
+#### Retrieve a list of entities
+
+To retrieve a collection of entities such as messages, you can send a GET request to the appropriate endpoint and customize the results using query parameters like `$select` to choose specific fields, and `$filter` to narrow down the results based on conditions.
+
+```python
+query_params = {
+
+    "$select": "subject,sender",
+
+    "$filter": "subject eq 'Hello world'"
+
+}
+
+response = graph_client.get('/me/messages', params=query_params)
+
+print(response.json())
+```
+
+#### Delete an entity
+
+To delete an entity using Microsoft Graph, construct the request similarly to how you would retrieve an entity, but use the `DELETE` HTTP method instead of `GET`.
+
+```python
+from msgraph import GraphServiceClient
+
+from azure.identity.aio import DeviceCodeCredential
+
+# Set up authentication
+
+credential = DeviceCodeCredential(client_id="YOUR_CLIENT_ID")
+
+graph_client = GraphServiceClient(credential)
+
+# Message ID to delete
+
+message_id = "YOUR_MESSAGE_ID"
+
+# Delete the message
+
+await graph_client.me.messages.by_message_id(message_id).delete()
+```
+
+#### Create a new entity
+
+In fluent-style and template-based SDKs, new items can be added to collections using the `POST` method.
+
+```python
+from msgraph import GraphServiceClient
+
+from azure.identity.aio import DeviceCodeCredential
+
+from msgraph.generated.models.calendar import Calendar
+
+
+credential = DeviceCodeCredential(client_id="YOUR_CLIENT_ID")
+
+graph_client = GraphServiceClient(credential)
+
+# Create a new calendar object
+
+calendar = Calendar(name="Volunteer")
+
+# Send POST request to create the calendar
+
+new_calendar = await graph_client.me.calendars.post(calendar)
+
+print(f"Created calendar: {new_calendar.id}")
+```
+
+#### Other resources
+
+- [Microsoft Graph REST API v1.0 reference](https://learn.microsoft.com/en-us/graph/api/overview)
+### Apply best practices to Microsoft Graph
+
+#### Authentication
+
+To access the data in Microsoft Graph, your application needs to acquire an OAuth 2.0 access token, and presents it to Microsoft Graph in either of the following methods:
+
+- The HTTP _Authorization_ request header, as a _Bearer_ token
+- The graph client constructor, when using a Microsoft Graph client library
+
+Use the Microsoft Authentication Library API, [MSAL](https://learn.microsoft.com/en-us/azure/active-directory/develop/active-directory-v2-libraries) to acquire the access token to Microsoft Graph.
+
+#### Consent and authorization
+
+Apply the following best practices for consent and authorization in your app:
+
+- **Use least privilege**. Only request permissions that are necessary, and only when you need them. For the APIs, your application calls check the permissions section in the method topics. For example, see [creating a user](https://learn.microsoft.com/en-us/graph/api/user-post-users) and choose the least privileged permissions.
+    
+- **Use the correct permission type based on scenarios**. If you're building an interactive application where a signed in user is present, your application should use _delegated_ permissions. If, however, your application runs without a signed-in user, such as a background service or daemon, your application should use application permissions.
+    
+     > **Caution**: Using application permissions for interactive scenarios can put your application at compliance and security risk. Be sure to check user's privileges to ensure they don't have undesired access to information, or are circumnavigating policies configured by an administrator.
+    
+- **Consider the end user and admin experience**. Directly affects end user and admin experiences. For example:
+    
+    - Consider who is consenting to your application, either end users or administrators, and configure your application to [request permissions appropriately](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent).
+        
+    - Ensure that you understand the difference between [static, dynamic, and incremental consent](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#consent-types).
+        
+- **Consider multi-tenant applications**. Expect customers to have various application and consent controls in different states. For example:
+    
+    - Tenant administrators can disable the ability for end users to consent to applications. In this case, an administrator would need to consent on behalf of their users.
+        
+    - Tenant administrators can set custom authorization policies such as blocking users from reading other user's profiles, or limiting self-service group creation to a limited set of users. In this case, your application should expect to handle 403 error response when acting on behalf of a user.
+
+#### Handle responses effectively
+
+Depending on the requests you make to Microsoft Graph, your applications should be prepared to handle different types of responses. The following are some of the most important practices to follow to ensure that your application behaves reliably and predictably for your end users. For example:
+
+- **Pagination**: When querying resource collections, you should expect that Microsoft Graph returns the result set in multiple pages, due to server-side page size limits. Your application should **always** handle the possibility that the responses are paged in nature, and use the `@odata.nextLink` property to obtain the next paged set of results, until all pages of the result set are read. The final page doesn't include an `@odata.nextLink` property. For more information, visit [paging](https://learn.microsoft.com/en-us/graph/paging).
+    
+- **Evolvable enumerations**: Adding members to existing enumerations can break applications already using these enums. Evolvable enums are a mechanism that Microsoft Graph API uses to add new members to existing enumerations without causing a breaking change for applications. By default, a GET operation returns only known members for properties of evolvable enum types and your application needs to handle only the known members. If you design your application to handle unknown members as well, you can opt in to receive those members by using an HTTP `Prefer` request header.
+
+#### Storing data locally
+
+Your application should ideally make calls to Microsoft Graph to retrieve data in real time as necessary. You should only cache or store data locally necessary for a specific scenario. If that use case is covered by your terms of use and privacy policy, and doesn't violate the [Microsoft APIs Terms of Use](https://learn.microsoft.com/en-us/legal/microsoft-apis/terms-of-use?context=/graph/context), your application should also implement proper retention and deletion policies.
+
+### Retrieve user profile information with the Microsoft Graph SDK
+
+In this exercise, you create a Python app to authenticate with Microsoft Entra ID and request an access token, then call the Microsoft Graph API to retrieve and display your user profile information. You learn how to configure permissions and interact with Microsoft Graph from your application.
+
+Tasks performed in this exercise:
+
+- Register an application with the Microsoft identity platform
+- Create a Python console application that implements interactive authentication, and uses the **GraphServiceClient** class to retrieve user profile information.
+
+This exercise takes approximately **15** minutes to complete.
+
+#### Before you start
+
+To complete the exercise, you need:
+
+- An Azure subscription. If you don't already have one, you can [sign up for one](https://azure.microsoft.com/).
+    
+- [Visual Studio Code](https://code.visualstudio.com/) on one of the [supported platforms](https://code.visualstudio.com/docs/supporting/requirements#_platforms).
+    
+- [Python 3.8](https://www.python.org/downloads/) or greater.
+    
+- [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for Visual Studio Code.
+    
+
+#### Register a new application
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+    
+2. In the portal, search for and select **App registrations**.
+    
+3. Select **+ New registration**, and when the **Register an application** page appears, enter your application's registration information:
+    
+    |Field|Value|
+    |---|---|
+    |**Name**|Enter `myGraphApplication`|
+    |**Supported account types**|Select **Accounts in this organizational directory only**|
+    |**Redirect URI (optional)**|Select **Public client/native (mobile & desktop)** and enter `http://localhost` in the box to the right.|
+    
+4. Select **Register**. Microsoft Entra ID assigns a unique application (client) ID to your app, and you're taken to your application's **Overview** page.
+    
+5. In the **Essentials** section of the **Overview** page record the **Application (client) ID** and the **Directory (tenant) ID**. The information is needed for the application.
+    
+    [![Screenshot showing the location of the fields to copy.](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-app-directory-id-location.png)](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-app-directory-id-location.png)
+    
+
+#### Create a Python console app to send and receive messages
+
+Now that the needed resources are deployed to Azure the next step is to set up the console application. The following steps are performed in your local environment.
+
+1. Create a folder named **graphapp**, or a name of your choosing, for the project.
+    
+2. Launch **Visual Studio Code** and select **File > Open folder...** and select the project folder.
+    
+3. Select **View > Terminal** to open a terminal.
+    
+4. Run the following command in the VS Code terminal to create a virtual environment and activate it.
+    
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+    
+5. Run the following commands to install the **azure-identity**, **msgraph-sdk**, and **python-dotenv** packages.
+    
+    ```bash
+    pip install azure-identity msgraph-sdk python-dotenv
+    ```
+    
+
+##### Configure the console application
+
+In this section you create, and edit, a **.env** file to hold the secrets you recorded earlier.
+
+1. Select **File > New file...** and create a file named _.env_ in the project folder.
+    
+2. Open the **.env** file and add the following code. Replace **YOUR_CLIENT_ID**, and **YOUR_TENANT_ID** with the values you recorded earlier.
+    
+    ```
+    CLIENT_ID="YOUR_CLIENT_ID"
+    TENANT_ID="YOUR_TENANT_ID"
+    ```
+    
+3. Press **ctrl+s** or **cmd+s** on Mac to save the file.
+    
+
+##### Add the starter code for the project
+
+1. Create a new file named _main.py_ in the project folder and add the following code. Be sure to review the comments in the code.
+    
+    ```python
+    import os
+    import asyncio
+    from dotenv import load_dotenv
+    from azure.identity import InteractiveBrowserCredential
+    from msgraph import GraphServiceClient
+
+    async def get_user_profile(graph_client: GraphServiceClient):
+        """Function to get and print the signed-in user's profile"""
+        try:
+            # Call Microsoft Graph /me endpoint to get user info
+            me = await graph_client.me.get()
+            print(f"Display Name: {me.display_name}")
+            print(f"Principal Name: {me.user_principal_name}")
+            print(f"User Id: {me.id}")
+        except Exception as ex:
+            # Print any errors encountered during the call
+            print(f"Error retrieving profile: {ex}")
+
+    async def main():
+        # Load environment variables from .env file (if present)
+        load_dotenv()
+        
+        # Read Azure AD app registration values from environment
+        client_id = os.getenv("CLIENT_ID")
+        tenant_id = os.getenv("TENANT_ID")
+        
+        # Validate that required environment variables are set
+        if not client_id or not tenant_id:
+            print("Please set CLIENT_ID and TENANT_ID environment variables.")
+            return
+        
+        # ADD CODE TO DEFINE SCOPE AND CONFIGURE AUTHENTICATION
+        
+        
+        
+        # ADD CODE TO CREATE GRAPH CLIENT AND RETRIEVE USER PROFILE
+        
+
+    if __name__ == "__main__":
+        asyncio.run(main())
+    ```
+    
+2. Press **ctrl+s** or **cmd+s** on Mac to save your changes.
+    
+
+##### Add code to complete the application
+
+1. Locate the **# ADD CODE TO DEFINE SCOPE AND CONFIGURE AUTHENTICATION** comment and add the following code directly after the comment. Be sure to review the comments in the code.
+    
+    ```python
+    # Define the Microsoft Graph permission scopes required by this app
+    scopes = ["User.Read"]
+    
+    # Configure interactive browser authentication for the user
+    credential = InteractiveBrowserCredential(
+        client_id=client_id,  # Azure AD app client ID
+        tenant_id=tenant_id,  # Azure AD tenant ID
+        redirect_uri="http://localhost"  # Redirect URI for auth flow
+    )
+    ```
+    
+2. Locate the **# ADD CODE TO CREATE GRAPH CLIENT AND RETRIEVE USER PROFILE** comment and add the following code directly after the comment. Be sure to review the comments in the code.
+    
+    ```python
+    # Create a Microsoft Graph client using the credential
+    graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
+    
+    # Retrieve and display the user's profile information
+    print("Retrieving user profile...")
+    await get_user_profile(graph_client)
+    ```
+    
+3. Press **ctrl+s** or **cmd+s** on Mac to save the file.
+    
+
+#### Run the application
+
+Now that the app is complete it's time to run it.
+
+1. Start the application by running the following command:
+    
+    ```bash
+    python main.py
+    ```
+    
+2. The app opens the default browser prompting you to select the account you want to authenticate with. If there are multiple accounts listed select the one associated with the tenant used in the app.
+    
+3. If this is the first time you've authenticated to the registered app you receive a **Permissions requested** notification asking you to approve the app to sign you in and read your profile, and maintain access to data you have given it access to. Select **Accept**.
+    
+    [![Screenshot showing the permissions requested notification](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-granting-permission.png)](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-granting-permission.png)
+    
+4. You should see the results similar to the example below in the console.
+    
+    ```
+    Retrieving user profile...
+    Display Name: <Your account display name>
+    Principal Name: <Your principal name>
+    User Id: 9f5...
+    ```
+    
+5. Start the application a second time and notice you no longer receive the **Permissions requested** notification. The permission you granted earlier was cached.
+    
+
+#### Clean up resources
+
+Now that you finished the exercise, you should delete the cloud resources you created to avoid unnecessary resource usage.
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+2. Navigate to the resource group you created and view the contents of the resources used in this exercise.
+3. On the toolbar, select **Delete resource group**.
+4. Enter the resource group name and confirm that you want to delete it.
+
+> **CAUTION:** Deleting a resource group deletes all resources contained within it. If you chose an existing resource group for this exercise, any existing resources outside the scope of this exercise will also be deleted.
