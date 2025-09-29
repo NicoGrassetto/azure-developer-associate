@@ -287,44 +287,497 @@ app = ConfidentialClientApplication(
 )
 ```
 
-#### Builder modifiers
+#### Constructor parameters
 
-In the application builders, modifiers like `authority` and `redirect_uri` can be passed as parameters (for example, `authority` and `redirect_uri`).
+In MSAL Python you pass `authority` to the constructor and supply `redirect_uri` when you call an interactive or auth‐code flow method.
 
-- `authority` parameter: The `authority` parameter sets the application default authority to a Microsoft Entra authority, with the possibility of choosing the Azure Cloud, the audience, the tenant (tenant ID or domain name), or providing directly the authority URI.
+- `authority` parameter: sets the default Microsoft Entra authority (choosing cloud, audience, tenant ID or domain, or full URI).
 
+```python
+from msal import PublicClientApplication
+
+app = PublicClientApplication(
+    client_id=client_id,
+    authority=f"https://login.microsoftonline.com/{tenant_id}"
+)
+```
+- `redirect_uri` parameter: To override the redirect URI, pass it to methods like  `acquire_token_interactive` or `acquire_token_by_authorization_code`:
+
+```python
+# Interactive flow
+result = app.acquire_token_interactive(
+    scopes=["User.Read"],
+    redirect_uri="http://localhost"
+)
+```
+
+```python
+# Authorization-code flow
+result = app.acquire_token_by_authorization_code(
+    code=authorization_code,
+    scopes=["User.Read"],
+    redirect_uri="http://localhost"
+)
+```
+#### Parameters common to public and confidential client applications
+
+The table below lists some of the parameters and options you can set on a public or confidential client in MSAL Python.
+
+| Parameter                         | Description                                                                                                        |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `client_id`                      | Overrides the application (client) ID.                                                                              |
+| `authority`                      | Sets the Microsoft Entra authority URI (Azure cloud, audience, tenant ID/domain, or full URI).                      |
+| `token_cache`                    | Specifies a custom token cache instance for persisting tokens.                                                      |
+| `proxies`                        | A `dict` of proxy servers to route HTTP requests.                                                                   |
+| `verify`                         | Controls TLS verification (`True`, `False`, or path to a CA bundle).                                                |
+| `http_client`                    | Supplies a custom HTTP transport implementing `msal.AbstractHttpClient`.                                            |
+| `redirect_uri` (acquire methods) | Overrides the redirect URI when calling `acquire_token_interactive` or `acquire_token_by_authorization_code`.       |
+| `logging`                        | Enable and configure debug tracing via Python’s built-in `logging` module.                                          |
+
+#### Parameters specific to confidential client applications
+The parameters specific to a confidential client application are passed to the `ConfidentialClientApplication` constructor in MSAL Python. See the [MSAL Python API reference](https://learn.microsoft.com/en-us/python/api/msal/msal?view=msal-py-latest) for details.
+
+Parameters such as supplying a client secret string versus a certificate dict to `client_credential` are mutually exclusive. If you provide both forms at once, MSAL Python will raise an error.
+
+### Implement interactive authentication with MSAL Python
+
+In this exercise, you register an application in Microsoft Entra ID, then create a Python console application that uses MSAL Python to perform interactive authentication and acquire an access token for Microsoft Graph. You learn how to configure authentication scopes, handle user consent, and see how tokens are cached for subsequent runs.
+
+Tasks performed in this exercise:
+
+- Register an application with the Microsoft identity platform
+- Create a Python console app that implements the **PublicClientApplication** class to configure authentication.
+- Acquire a token interactively using the **User.Read** Microsoft Graph permission.
+
+This exercise takes approximately **15** minutes to complete.
+
+#### Before you start
+
+To complete the exercise, you need:
+
+- An Azure subscription. If you don't already have one, you can [sign up for one](https://azure.microsoft.com/).
+    
+- [Visual Studio Code](https://code.visualstudio.com/) on one of the [supported platforms](https://code.visualstudio.com/docs/supporting/requirements#_platforms).
+    
+- [Python 3.7](https://www.python.org/downloads/) or greater.
+    
+- [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for Visual Studio Code.
+    
+
+#### Register a new application
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+    
+2. In the portal, search for and select **App registrations**.
+    
+3. Select **+ New registration**, and when the **Register an application** page appears, enter your application's registration information:
+    
+    |Field|Value|
+    |---|---|
+    |**Name**|Enter `myMsalApplication`|
+    |**Supported account types**|Select **Accounts in this organizational directory only**|
+    |**Redirect URI (optional)**|Select **Public client/native (mobile & desktop)** and enter `http://localhost` in the box to the right.|
+    
+4. Select **Register**. Microsoft Entra ID assigns a unique application (client) ID to your app, and you're taken to your application's **Overview** page.
+    
+5. In the **Essentials** section of the **Overview** page record the **Application (client) ID** and the **Directory (tenant) ID**. The information is needed for the application.
+    
+    [![Screenshot showing the location of the fields to copy.](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-app-directory-id-location.png)](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-app-directory-id-location.png)
+    
+
+#### Create a Python console app to acquire a token
+
+Now that the needed resources are deployed to Azure the next step is to set up the console application. The following steps are performed in your local environment.
+
+1. Create a folder named **authapp**, or a name of your choosing, for the project.
+    
+2. Launch **Visual Studio Code** and select **File > Open folder...** and select the project folder.
+    
+3. Select **View > Terminal** to open a terminal.
+    
+4. Run the following command in the VS Code terminal to create a Python virtual environment.
+    
+    ```bash
+    python -m venv auth-env
+    ```
+    
+5. Activate the virtual environment:
+    
+    - On Windows:
+        ```bash
+        auth-env\Scripts\activate
+        ```
+    - On macOS/Linux:
+        ```bash
+        source auth-env/bin/activate
+        ```
+    
+6. Run the following command to install the **msal** and **python-dotenv** packages.
+    
+    ```bash
+    pip install msal python-dotenv
+    ```
+    
+
+##### Configure the console application
+
+In this section you create, and edit, a **.env** file to hold the secrets you recorded earlier.
+
+1. Select **File > New file...** and create a file named _.env_ in the project folder.
+    
+2. Open the **.env** file and add the following code. Replace **YOUR_CLIENT_ID**, and **YOUR_TENANT_ID** with the values you recorded earlier.
+    
+    ```
+    CLIENT_ID="YOUR_CLIENT_ID"
+    TENANT_ID="YOUR_TENANT_ID"
+    ```
+    
+3. Press **ctrl+s** to save your changes.
+    
+
+##### Add the starter code for the project
+
+1. Create a new file named `app.py` in the project folder and add the following code. Be sure to review the comments in the code.
+    
     ```python
-    from msal import PublicClientApplication
+    import os
+    import msal
+    from dotenv import load_dotenv
+    
+    # Load environment variables from .env file
+    load_dotenv()
+    
+    # Retrieve Azure AD Application ID and tenant ID from environment variables
+    client_id = os.getenv("CLIENT_ID")
+    tenant_id = os.getenv("TENANT_ID")
+    
+    # ADD CODE TO DEFINE SCOPES AND CREATE CLIENT 
+    
+    
+    
+    # ADD CODE TO ACQUIRE AN ACCESS TOKEN
+    
+    
+    ```
+    
+2. Press **ctrl+s** to save your changes.
+    
 
-    app = PublicClientApplication(
-        client_id=client_id,
+##### Add code to complete the application
+
+1. Locate the **# ADD CODE TO DEFINE SCOPES AND CREATE CLIENT** comment and add the following code directly after the comment. Be sure to review the comments in the code.
+    
+    ```python
+    # Define the scopes required for authentication
+    scopes = ["User.Read"]
+    
+    # Build the MSAL public client application with authority
+    app = msal.PublicClientApplication(
+        client_id,
         authority=f"https://login.microsoftonline.com/{tenant_id}"
     )
     ```
-
-- `redirect_uri` parameter: The `redirect_uri` parameter overrides the default redirect URI.
-
+    
+2. Locate the **# ADD CODE TO ACQUIRE AN ACCESS TOKEN** comment and add the following code directly after the comment. Be sure to review the comments in the code.
+    
     ```python
-    from msal import PublicClientApplication
-
-    app = PublicClientApplication(
-        client_id=client_id,
-        authority=f"https://login.microsoftonline.com/{tenant_id}",
-        redirect_uri="http://localhost"
-    )
+    # Attempt to acquire an access token silently or interactively
+    result = None
+    
+    # Try to acquire token silently from cache for the first available account
+    accounts = app.get_accounts()
+    if accounts:
+        result = app.acquire_token_silent(scopes, account=accounts[0])
+    
+    if not result:
+        # If silent token acquisition fails, prompt the user interactively
+        result = app.acquire_token_interactive(scopes=scopes)
+    
+    # Output the acquired access token to the console
+    if "access_token" in result:
+        print(f"Access Token:\n{result['access_token']}")
+    else:
+        print(result.get("error"))
+        print(result.get("error_description"))
     ```
+    
+3. Press **ctrl+s** to save the file.
+    
 
-#### Modifiers common to public and confidential client applications
+#### Run the application
 
-The table below lists some of the modifiers you can set on a public, or confidential client.
+Now that the app is complete it's time to run it.
 
-| Modifier | Description |
-|----------|-------------|
-| .WithAuthority() | Sets the application default authority to a Microsoft Entra authority, with the possibility of choosing the Azure Cloud, the audience, the tenant (tenant ID or domain name), or providing directly the authority URI. |
-| .WithTenantId(string tenantId) | Overrides the tenant ID, or the tenant description. |
-| .WithClientId(string) | Overrides the client ID. |
-| .WithRedirectUri(string redirectUri) | Overrides the default redirect URI. This is useful for scenarios requiring a broker. |
-| .WithComponent(string) | Sets the name of the library using MSAL.NET (for telemetry reasons). |
-| .WithDebugLoggingCallback() | If called, the application calls Debug.Write simply enabling debugging traces. |
-| .WithLogging() | If called, the application calls a callback with debugging traces. |
-| .WithTelemetry(TelemetryCallback telemetryCallback) | Sets the delegate used to send telemetry. |
+1. Start the application by running the following command:
+    
+    ```bash
+    python app.py
+    ```
+    
+2. The app opens the default browser prompting you to select the account you want to authenticate with. If there are multiple accounts listed select the one associated with the tenant used in the app.
+    
+3. If this is the first time you've authenticated to the registered app you receive a **Permissions requested** notification asking you to approve the app to sign you in and read your profile, and maintain access to data you have given it access to. Select **Accept**.
+    
+    [![Screenshot showing the permissions requested notification](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-granting-permission.png)](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-auth/media/01-granting-permission.png)
+    
+4. You should see the results similar to the example below in the console.
+    
+    ```
+    Access Token:
+    eyJ0eXAiOiJKV1QiLCJub25jZSI6IlZF.........
+    ```
+    
+5. Start the application a second time and notice you no longer receive the **Permissions requested** notification. The permission you granted earlier was cached.
+    
+
+#### Clean up resources
+
+Now that you finished the exercise, you should delete the cloud resources you created to avoid unnecessary resource usage.
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+2. Navigate to the resource group you created and view the contents of the resources used in this exercise.
+3. On the toolbar, select **Delete resource group**.
+4. Enter the resource group name and confirm that you want to delete it.
+
+> **CAUTION:** Deleting a resource group deletes all resources contained within it. If you chose an existing resource group for this exercise, any existing resources outside the scope of this exercise will also be deleted.
+
+## Implement shared access signatures
+### Introduction
+
+A shared access signature (SAS) is a URI that grants restricted access rights to Azure Storage resources. You can provide a shared access signature to clients that you want to grant delegate access to certain storage account resources.
+### Discover shared access signatures
+
+A shared access signature (SAS) is a signed URI that points to one or more storage resources and includes a token that contains a special set of query parameters. The token indicates how the resources might be accessed by the client. One of the query parameters, the signature, is constructed from the SAS parameters and signed with the key that was used to create the SAS. This signature is used by Azure Storage to authorize access to the storage resource.
+
+#### Types of shared access signatures
+
+Azure Storage supports three types of shared access signatures:
+
+- **User delegation SAS**: A user delegation SAS is secured with Microsoft Entra credentials and also by the permissions specified for the SAS. A user delegation SAS applies to Blob storage only.
+    
+- **Service SAS**: A service SAS is secured with the storage account key. A service SAS delegates access to a resource in the following Azure Storage services: Blob storage, Queue storage, Table storage, or Azure Files.
+    
+- **Account SAS**: An account SAS is secured with the storage account key. An account SAS delegates access to resources in one or more of the storage services. All of the operations available via a service or user delegation SAS are also available via an account SAS.
+    
+
+> **Note**: Microsoft recommends that you use Microsoft Entra credentials when possible as a security best practice, rather than using the account key, which can be more easily compromised. When your application design requires shared access signatures for access to Blob storage, use Microsoft Entra credentials to create a user delegation SAS when possible for superior security
+
+#### How shared access signatures work
+
+When you use a SAS to access data stored in Azure Storage, you need two components. The first is a URI to the resource you want to access. The second part is a SAS token that you've created to authorize access to that resource.
+
+In a single URI, such as `https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D`, you can separate the URI from the SAS token as follows:
+
+- **URI:** `https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?`
+- **SAS token:** `sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D`
+
+The SAS token itself is made up of several components.
+
+|Component|Description|
+|---|---|
+|`sp=r`|Controls the access rights. The values can be `a` for add, `c` for create, `d` for delete, `l` for list, `r` for read, or `w` for write. This example is read only. The example `sp=acdlrw` grants all the available rights.|
+|`st=2020-01-20T11:42:32Z`|The date and time when access starts.|
+|`se=2020-01-20T19:42:32Z`|The date and time when access ends. This example grants eight hours of access.|
+|`sv=2019-02-02`|The version of the storage API to use.|
+|`sr=b`|The kind of storage being accessed. In this example, b is for blob.|
+|`sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D`|The cryptographic signature.|
+
+## Best practices
+
+To reduce the potential risks of using a SAS, Microsoft provides some guidance:
+
+- To securely distribute a SAS and prevent man-in-the-middle attacks, always use HTTPS.
+- The most secure SAS is a user delegation SAS. Use it wherever possible because it removes the need to store your storage account key in code. You must use Microsoft Entra ID to manage credentials. This option might not be possible for your solution.
+- Try to set your expiration time to the smallest useful value. If a SAS key becomes compromised, it can be exploited for only a short time.
+- Apply the rule of minimum-required privileges. Only grant the access that's required. For example, in your app, read-only access is sufficient.
+- There are some situations where a SAS isn't the correct solution. When there's an unacceptable risk of using a SAS, create a middle-tier service to manage users and their access to storage.
+
+
+### Choose when to use shared access signatures
+
+Use a SAS when you want to provide secure access to resources in your storage account to any client who doesn't otherwise have permissions to those resources.
+
+A common scenario where a SAS is useful is a service where users read and write their own data to your storage account. In a scenario where a storage account stores user data, there are two typical design patterns:
+
+- Clients upload and download data via a front-end proxy service, which performs authentication. This front-end proxy service has the advantage of allowing validation of business rules, but for large amounts of data or high-volume transactions, creating a service that can scale to match demand may be expensive or difficult.
+    
+    ![Scenario diagram: Front-end proxy service](https://learn.microsoft.com/en-gb/training/wwl-azure/implement-shared-access-signatures/media/storage-proxy-service.png)
+    
+- A lightweight service authenticates the client as needed and then generates a SAS. Once the client application receives the SAS, they can access storage account resources directly with the permissions defined by the SAS and for the interval allowed by the SAS. The SAS mitigates the need for routing all data through the front-end proxy service.
+    
+    ![Scenario diagram: SAS provider service](https://learn.microsoft.com/en-gb/training/wwl-azure/implement-shared-access-signatures/media/storage-provider-service.png)
+    
+
+Many real-world services might use a hybrid of these two approaches. For example, some data might be processed and validated via the front-end proxy, while other data is saved and/or read directly using SAS.
+
+Additionally, a SAS is required to authorize access to the source object in a copy operation in certain scenarios:
+
+- When you copy a blob to another blob that resides in a different storage account, you must use a SAS to authorize access to the source blob. You can optionally use a SAS to authorize access to the destination blob as well.
+    
+- When you copy a file to another file that resides in a different storage account, you must use a SAS to authorize access to the source file. You can optionally use a SAS to authorize access to the destination file as well.
+    
+- When you copy a blob to a file, or a file to a blob, you must use a SAS to authorize access to the source object, even if the source and destination objects reside within the same storage account.
+
+### Explore stored access policies
+
+A stored access policy provides an extra level of control over service-level shared access signatures (SAS) on the server side. Establishing a stored access policy groups SAS and provides more restrictions for signatures that bound by the policy. You can use a stored access policy to change the start time, expiry time, or permissions for a signature, or to revoke it after it is issued.
+
+The following storage resources support stored access policies:
+
+- Blob containers
+- File shares
+- Queues
+- Tables
+
+#### Creating a stored access policy
+
+The access policy for a SAS consists of the start time, expiry time, and permissions for the signature. You can specify all of these parameters on the signature URI and none within the stored access policy; all on the stored access policy and none on the URI; or some combination of the two. However, you can't specify a given parameter on both the SAS token and the stored access policy.
+
+To create or modify a stored access policy, call the `Set ACL` operation for the resource (see [Set Container ACL](https://learn.microsoft.com/en-us/rest/api/storageservices/set-container-acl), [Set Queue ACL](https://learn.microsoft.com/en-us/rest/api/storageservices/set-queue-acl), [Set Table ACL](https://learn.microsoft.com/en-us/rest/api/storageservices/set-table-acl), or [Set Share ACL](https://learn.microsoft.com/en-us/rest/api/storageservices/set-share-acl)) with a request body that specifies the terms of the access policy. The body of the request includes a unique signed identifier of your choosing, up to 64 characters in length, and the optional parameters of the access policy, as follows:
+
+>**Note**: When you establish a stored access policy on a container, table, queue, or share, it may take up to 30 seconds to take effect. During this time requests against a SAS associated with the stored access policy may fail with status code 403 (Forbidden), until the access policy becomes active. Table entity range restrictions (`startpk`, `startrk`, `endpk`, and `endrk`) cannot be specified in a stored access policy.
+
+Following are examples of creating a stored access policy by using Python and the Azure CLI.
+
+```python
+from azure.storage.blob import BlobServiceClient, AccessPolicy, ContainerSasPermissions
+from datetime import datetime, timedelta, timezone
+
+# Create a BlobServiceClient
+blob_service_client = BlobServiceClient(account_url="https://<account_name>.blob.core.windows.net", credential="<account_key>")
+
+# Get a container client
+container_client = blob_service_client.get_container_client("your-container-name")
+
+# Define the access policy
+access_policy = AccessPolicy(
+    permission=ContainerSasPermissions(read=True, write=True),
+    expiry=datetime.now(timezone.utc) + timedelta(hours=1),
+    start=datetime.now(timezone.utc)
+)
+
+# Create the stored access policy
+signed_identifiers = {
+    "stored-access-policy-identifier": access_policy
+}
+
+# Set the access policy on the container
+container_client.set_container_access_policy(signed_identifiers=signed_identifiers)
+```
+
+```bash
+az storage container policy create \
+    --name <stored access policy identifier> \
+    --container-name <container name> \
+    --start <start time UTC datetime> \
+    --expiry <expiry time UTC datetime> \
+    --permissions <(a)dd, (c)reate, (d)elete, (l)ist, (r)ead, or (w)rite> \
+    --account-key <storage account key> \
+    --account-name <storage account name> \
+```
+
+#### Modifying or revoking a stored access policy
+
+To modify the parameters of the stored access policy you can call the access control list operation for the resource type to replace the existing policy. For example, if your existing policy grants read and write permissions to a resource, you can modify it to grant only read permissions for all future requests.
+
+To revoke a stored access policy you can delete it, rename it by changing the signed identifier, or change the expiry time to a value in the past. Changing the signed identifier breaks the associations between any existing signatures and the stored access policy. Changing the expiry time to a value in the past causes any associated signatures to expire. Deleting or modifying the stored access policy immediately affects all of the SAS associated with it.
+
+To remove a single access policy, call the resource's `Set ACL` operation, passing in the set of signed identifiers that you wish to maintain on the container. To remove all access policies from the resource, call the `Set ACL` operation with an empty request body.
+
+## Explore Microsoft Graph
+### Introduction
+Use the wealth of data in Microsoft Graph to build apps for organizations and consumers that interact with millions of users.
+
+### Discover Microsoft Graph
+
+
+Microsoft Graph is the gateway to data and intelligence in Microsoft 365. It provides a unified programmability model that you can use to access the tremendous amount of data in Microsoft 365, Windows 10, and Enterprise Mobility + Security.
+
+![Microsoft Graph, Microsoft Graph data connect, and Microsoft Graph connectors enable extending Microsoft 365 experiences and building intelligent apps.](https://learn.microsoft.com/en-gb/training/wwl-azure/microsoft-graph/media/microsoft-graph-data-connectors.png)
+
+In the Microsoft 365 platform, three main components facilitate the access and flow of data:
+
+- The Microsoft Graph API offers a single endpoint, `https://graph.microsoft.com`. You can use REST APIs or SDKs to access the endpoint. Microsoft Graph also includes services that manage user and device identity, access, compliance, and security.
+    
+- [Microsoft Graph connectors](https://learn.microsoft.com/en-us/microsoftsearch/connectors-overview) work in the incoming direction, **delivering data external to the Microsoft cloud into Microsoft Graph services and applications**, to enhance Microsoft 365 experiences such as Microsoft Search. Connectors exist for many commonly used data sources such as Box, Google Drive, Jira, and Salesforce.
+    
+- [Microsoft Graph Data Connect](https://learn.microsoft.com/en-us/graph/overview#access-microsoft-graph-data-at-scale-using-microsoft-graph-data-connect) provides a set of tools to streamline secure and scalable **delivery of Microsoft Graph data to popular Azure data stores**. The cached data serves as data sources for Azure development tools that you can use to build intelligent applications.
+
+### Query Microsoft Graph by using REST
+
+
+Microsoft Graph is a RESTful web API that enables you to access Microsoft Cloud service resources. After you register your app and get authentication tokens for a user or service, you can make requests to the Microsoft Graph API.
+
+The Microsoft Graph API defines most of its resources, methods, and enumerations in the OData namespace, `microsoft.graph`, in the [Microsoft Graph metadata](https://learn.microsoft.com/en-us/graph/traverse-the-graph#microsoft-graph-api-metadata). A few API sets are defined in their subnamespaces, such as the [call records API](https://learn.microsoft.com/en-us/graph/api/resources/callrecords-api-overview) which defines resources like [callRecord](https://learn.microsoft.com/en-us/graph/api/resources/callrecords-callrecord) in `microsoft.graph.callRecords`.
+
+Unless explicitly specified in the corresponding topic, assume types, methods, and enumerations are part of the `microsoft.graph` namespace.
+
+#### Call a REST API method
+
+To read from or write to a resource such as a user or an email message, construct a request that looks like the following sample:
+
+```bash
+{HTTP method} https://graph.microsoft.com/{version}/{resource}?{query-parameters}
+```
+
+The components of a request include:
+
+- `{HTTP method}` - The HTTP method used on the request to Microsoft Graph.
+- `{version}` - The version of the Microsoft Graph API your application is using.
+- `{resource}` - The resource in Microsoft Graph that you're referencing.
+- `{query-parameters}` - Optional OData query options or REST method parameters that customize the response.
+
+After you make a request, a response is returned that includes:
+
+- Status code - An HTTP status code that indicates success or failure.
+- Response message - The data that you requested or the result of the operation. The response message can be empty for some operations.
+- `nextLink` - If your request returns numerous data, you need to page through it by using the URL returned in `@odata.nextLink`.
+
+#### HTTP methods
+
+Microsoft Graph uses the HTTP method on your request to determine what your request is doing. The API supports the following methods.
+
+|Method|Description|
+|---|---|
+|GET|Read data from a resource.|
+|POST|Create a new resource, or perform an action.|
+|PATCH|Update a resource with new values.|
+|PUT|Replace a resource with a new one.|
+|DELETE|Remove a resource.|
+
+- For the CRUD methods `GET` and `DELETE`, no request body is required.
+- The `POST`, `PATCH`, and `PUT` methods require a request body specified in JSON format that contains additional information. Such as the values for properties of the resource.
+
+#### Version
+
+Microsoft Graph currently supports two versions: `v1.0` and `beta`.
+
+- `v1.0` includes generally available APIs. Use the v1.0 version for all production apps.
+- `beta` includes APIs that are currently in preview. Because we might introduce breaking changes to our beta APIs, we recommend that you use the beta version only to test apps that are in development; don't use beta APIs in your production apps.
+
+#### Resource
+
+A resource can be an entity or complex type, commonly defined with properties. Entities differ from complex types by always including an **id** property.
+
+Your URL includes the resource you're interacting with in the request, such as `me`, **user**, **group**, **drive**, and **site**. Often, top-level resources also include _relationships_, which you can use to access other resources, like `me/messages` or `me/drive`. You can also interact with resources using _methods_; for example, to send an email, use `me/sendMail`.
+
+Each resource might require different permissions to access it. You often need a higher level of permissions to create or update a resource than to read it. For details about required permissions, see the method reference topic.
+
+#### Query parameters
+
+Query parameters can be OData system query options, or other strings that a method accepts to customize its response.
+
+You can use optional OData system query options to include more or fewer properties than the default response. You can filter the response for items that match a custom query, or provide another parameters for a method.
+
+For example, adding the following `filter` parameter restricts the messages returned with the `emailAddress` property of `jon@contoso.com`.
+
+```bash
+GET https://graph.microsoft.com/v1.0/me/messages?filter=emailAddress eq 'jon@contoso.com'
+```
+
+#### Other resources
+
+Following are links to some tools you can use to build and test requests using Microsoft Graph APIs.
+
+- [Graph Explorer](https://developer.microsoft.com/graph/graph-explorer)
+- [Postman](https://www.getpostman.com/)
