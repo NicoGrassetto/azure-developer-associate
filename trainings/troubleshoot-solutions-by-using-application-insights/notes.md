@@ -170,3 +170,276 @@ One of the key objectives with this experience is to be able to visualize comple
 ![Screenshot showing component details in the Application Map.](https://learn.microsoft.com/en-gb/training/modules/monitor-app-performance/media/application-map-component.png)
 
 Application Map uses the cloud role name property to identify the components on the map. You can manually set or override the cloud role name and change what gets displayed on the Application Map.
+
+### Monitor an application with autoinstrumentation
+
+In this exercise, you create an Azure App Service web app with Application Insights enabled, configure autoinstrumentation without modifying code, create and deploy a Flask application, and then view application metrics and error data in Application Insights. Implementing comprehensive application monitoring and observability, without having to make changes to your code, makes deployments and migrations simpler.
+
+Tasks performed in this exercise:
+
+- Create a web app resource with Application Insights enabled
+- Configure instrumentation for the web app.
+- Create a new Flask app and deploy it to the web app resource.
+- View application activity in Application Insights
+- Clean up resources
+
+This exercise takes approximately **20** minutes to complete.
+
+#### Create resources in Azure
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+    
+2. Select the **+ Create a resource** located in the **Azure Services** heading near the top of the homepage.
+    
+3. In the **Search the Marketplace** search bar, enter _web app_ and press **enter** to start searching.
+    
+4. In the Web App tile, select the **Create** drop-down and then select **Web App**.
+    
+    [![Screenshot of the Web App tile.](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-insights/media/create-web-app-tile.png)](https://microsoftlearning.github.io/mslearn-azure-developer/instructions/azure-app-insights/media/create-web-app-tile.png)
+    
+
+Selecting **Create** will open a template with a few tabs to fill out with information about your deployment. The following steps walk you through what changes to make in the relevant tabs.
+
+1. Fill out the **Basics** tab with the information in the following table:
+    
+    |Setting|Action|
+    |---|---|
+    |**Subscription**|Retain the default value.|
+    |**Resource group**|Select Create new, enter `rg-WebApp`, and then select OK. You can also select an existing resource group if you prefer.|
+    |**Name**|Enter a unique name, for example **YOUR-INITIALS-monitorapp**. Replace **YOUR-INITIALS** with your initials, or some other value. The name needs to be unique, so it may require a few changes.|
+    |Slider under **Name** setting|Select the slider to turn it off. This slider only appears in some Azure configurations.|
+    |**Publish**|Select the **Code** option.|
+    |**Runtime stack**|Select **Python 3.11** in the drop-down menu.|
+    |**Operating System**|Select **Linux**.|
+    |**Region**|Retain the default selection, or choose a region near you.|
+    |**Linux Plan**|Retain the default selection.|
+    |**Pricing plan**|Select the drop-down and choose the **Free F1** plan.|
+
+    > **Note**: Python autoinstrumentation for Application Insights requires Linux OS and Python versions 3.9-3.13. Custom containers are not supported. For more information, see [Enable application monitoring in Azure App Service](https://learn.microsoft.com/en-us/azure/azure-monitor/app/codeless-app-service?tabs=python).
+    
+2. Select, or navigate to, the **Monitor + secure** tab, and enter the information in the following table:
+    
+    |Setting|Action|
+    |---|---|
+    |**Enable Application Insights**|Select **Yes**.|
+    |**Application Insights**|Select **Create new** and a dialog box will appear. Enter `autoinstrument-insights` in the **Name** field of the dialog box. Then select **OK** to accept the name.|
+    |**Workspace**|Enter `Workspace` if the field isn't already filled in and locked.|
+    
+3. Select **Review + create** and review the details of your deployment. Then select **Create** to create the resources.
+    
+
+It will take a few minutes for the deployment to complete. When it's finished, select the **Go to resource** button.
+
+##### Configure instrumentation settings
+
+To enable monitoring without changes to your code, you need to configure the instrumentation for your app at the service level.
+
+1. In the left-navigation menu expand **Monitoring** and select **Application Insights**.
+    
+2. Locate the **Instrument your application** section and select **Python**.
+    
+3. Select **Recommended** in the **Collection level** section.
+    
+4. Select **Apply** and then confirm the changes.
+    
+5. In the left-navigation menu, select **Overview**.
+
+> **Note**: For Python applications, logging telemetry is collected at the level of the root logger. To learn more about Python's native logging hierarchy, visit the [Python logging documentation](https://docs.python.org/3/library/logging.html).
+    
+
+#### Create and deploy a Flask app
+
+In this section of the exercise you create a Flask app in the Cloud Shell and deploy it to the web app you created. All of the steps in this section are performed in the Cloud Shell.
+
+1. Use the **[>_]** button to the right of the search bar at the top of the page to create a new cloud shell in the Azure portal, selecting a _**Bash**_ environment. The cloud shell provides a command line interface in a pane at the bottom of the Azure portal. If you are prompted to select a storage account to persist your files, select **No storage account required**, your subscription, and then select **Apply**.
+    
+    > **Note**: If you have previously created a cloud shell that uses a _PowerShell_ environment, switch it to _**Bash**_.
+    
+2. Run the following commands to create a directory for the Flask app and change into the directory.
+    
+    ```bash
+    mkdir flaskapp
+    cd flaskapp
+    ```
+    
+3. Create a new Flask application by creating the necessary files. First, create the `app.py` file:
+    
+    ```bash
+    cat > app.py << 'EOF'
+    from flask import Flask, render_template
+    import random
+
+    app = Flask(__name__)
+
+    @app.route("/")
+    def home():
+        return render_template("index.html")
+
+    @app.route("/counter")
+    def counter():
+        return render_template("counter.html")
+
+    @app.route("/weather")
+    def weather():
+        # Simulated weather data
+        forecasts = [
+            {"date": "2024-01-01", "temp_c": 15, "summary": "Sunny"},
+            {"date": "2024-01-02", "temp_c": 18, "summary": "Cloudy"},
+            {"date": "2024-01-03", "temp_c": 12, "summary": "Rainy"},
+            {"date": "2024-01-04", "temp_c": 20, "summary": "Warm"},
+            {"date": "2024-01-05", "temp_c": 17, "summary": "Mild"},
+        ]
+        return render_template("weather.html", forecasts=forecasts)
+
+    if __name__ == "__main__":
+        app.run()
+    EOF
+    ```
+
+4. Create the `requirements.txt` file:
+    
+    ```bash
+    cat > requirements.txt << 'EOF'
+    Flask==3.0.0
+    gunicorn==21.2.0
+    EOF
+    ```
+
+5. Create the templates directory and HTML files:
+    
+    ```bash
+    mkdir templates
+    
+    cat > templates/index.html << 'EOF'
+    <!DOCTYPE html>
+    <html>
+    <head><title>Home</title></head>
+    <body>
+        <h1>Welcome to the Flask App</h1>
+        <nav>
+            <a href="/">Home</a> | 
+            <a href="/counter">Counter</a> | 
+            <a href="/weather">Weather</a>
+        </nav>
+    </body>
+    </html>
+    EOF
+    
+    cat > templates/counter.html << 'EOF'
+    <!DOCTYPE html>
+    <html>
+    <head><title>Counter</title></head>
+    <body>
+        <h1>Counter Page</h1>
+        <p>Current count: <span id="count">0</span></p>
+        <button onclick="document.getElementById('count').innerText = parseInt(document.getElementById('count').innerText) + 1">Increment</button>
+        <nav>
+            <a href="/">Home</a> | 
+            <a href="/counter">Counter</a> | 
+            <a href="/weather">Weather</a>
+        </nav>
+    </body>
+    </html>
+    EOF
+    
+    cat > templates/weather.html << 'EOF'
+    <!DOCTYPE html>
+    <html>
+    <head><title>Weather</title></head>
+    <body>
+        <h1>Weather Forecast</h1>
+        <table border="1">
+            <tr><th>Date</th><th>Temp (°C)</th><th>Summary</th></tr>
+            {% for forecast in forecasts %}
+            <tr>
+                <td>{{ forecast.date }}</td>
+                <td>{{ forecast.temp_c }}</td>
+                <td>{{ forecast.summary }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <nav>
+            <a href="/">Home</a> | 
+            <a href="/counter">Counter</a> | 
+            <a href="/weather">Weather</a>
+        </nav>
+    </body>
+    </html>
+    EOF
+    ```
+
+6. Verify the application structure:
+    
+    ```bash
+    ls -la
+    ls templates/
+    ```
+    
+
+##### Deploy the app to App Service
+
+To deploy the app you need to create a _.zip_ file containing your application code for deployment.
+
+1. Run the following commands to create a _.zip_ file of the app. The _.zip_ file will be located in the root directory of the application.
+    
+    ```bash
+    zip -r app.zip . -x "*.pyc" -x "__pycache__/*"
+    ```
+    
+2. Run the following command to deploy the app to App Service. Replace **YOUR-WEB-APP-NAME** and **YOUR-RESOURCE-GROUP** with the values you used when creating the App Service resources earlier in the exercise.
+    
+    ```bash
+    az webapp deploy --name YOUR-WEB-APP-NAME \
+        --resource-group YOUR-RESOURCE-GROUP \
+        --src-path ./app.zip
+    ```
+
+3. Configure the startup command for the Flask app:
+
+    ```bash
+    az webapp config set --name YOUR-WEB-APP-NAME \
+        --resource-group YOUR-RESOURCE-GROUP \
+        --startup-file "gunicorn --bind=0.0.0.0 --timeout 600 app:app"
+    ```
+    
+4. When the deployment is completed, select the link in the **Default domain** field located in the **Essentials** section to open the app in a new tab in your browser.
+    
+
+Now it's time to view some basic application metrics in Application Insights. Don't close this tab, you'll use it in the rest of the exercise.
+
+#### View metrics in Application Insights
+
+Return the tab with the Azure Portal and navigate to the Application Insights resource you created earlier. The **Overview** tab displays some basic charts:
+
+- Failed requests
+- Server response time
+- Server requests
+- Availability
+
+In this section you will perform some actions in the web app and then return to this page to view the activity. The activity reporting is delayed, so it may take a few minutes for it to appear in the charts.
+
+Perform the following steps in the web app.
+
+1. Navigate between the **Home**, **Counter**, and **Weather** navigation options in the menu of the web app.
+    
+2. Refresh the web page several times to generate **Server response time** and **Server requests** data.
+    
+3. To create some errors, select the **Home** button and then append the URL with **/failures**. This route doesn't exist in the web app and will generate an error. Refresh the page several times to generate error data.
+    
+4. Return to the tab where Application Insights is running, and wait a minute or two for the information to appear in the charts.
+    
+5. In the left-navigation expand the **Investigate** section and select **Failures**. It displays the failed request count along with more detailed information about the response codes for the failures.
+    
+
+Explore other reporting options to get an idea of what other types of information is available.
+
+#### Clean up resources
+
+Now that you finished the exercise, you should delete the cloud resources you created to avoid unnecessary resource usage.
+
+1. In your browser navigate to the Azure portal [https://portal.azure.com](https://portal.azure.com/); signing in with your Azure credentials if prompted.
+2. Navigate to the resource group you created and view the contents of the resources used in this exercise.
+3. On the toolbar, select **Delete resource group**.
+4. Enter the resource group name and confirm that you want to delete it.
+
+> **CAUTION:** Deleting a resource group deletes all resources contained within it. If you chose an existing resource group for this exercise, any existing resources outside the scope of this exercise will also be deleted.
