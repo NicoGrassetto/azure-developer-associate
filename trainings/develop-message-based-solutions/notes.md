@@ -570,40 +570,37 @@ Now that the needed resources are deployed to Azure the next step is to set up t
 
 1. Run the following command in the cloud shell to begin editing the application.
     
-    ```
-    code script.cs
+    ```bash
+    code script.py
     ```
     
 2. Replace any existing contents with the following code. Be sure to review the comments in the code, and replace with the storage account name you recorded earlier.
     
-    ```
-    using Azure;
-    using Azure.Identity;
-    using Azure.Storage.Queues;
-    using Azure.Storage.Queues.Models;
-    using System;
-    using System.Threading.Tasks;
-    
-    // Create a unique name for the queue
-    // TODO: Replace the <YOUR-STORAGE-ACCT-NAME> placeholder 
-    string queueName = "myqueue-" + Guid.NewGuid().ToString();
-    string storageAccountName = "<YOUR-STORAGE-ACCT-NAME>";
-    
-    // ADD CODE TO CREATE A QUEUE CLIENT AND CREATE A QUEUE
-    
-    
-    
-    // ADD CODE TO SEND AND LIST MESSAGES
-    
-    
-    
-    // ADD CODE TO UPDATE A MESSAGE AND LIST MESSAGES
-    
-    
-    
-    // ADD CODE TO DELETE MESSAGES AND THE QUEUE
-    
-    
+    ```python
+    import os
+    import uuid
+    from azure.identity import DefaultAzureCredential
+    from azure.storage.queue import QueueClient
+
+    # Create a unique name for the queue
+    # TODO: Replace the <YOUR-STORAGE-ACCT-NAME> placeholder 
+    queue_name = "myqueue-" + str(uuid.uuid4())
+    storage_account_name = "<YOUR-STORAGE-ACCT-NAME>"
+
+    # ADD CODE TO CREATE A QUEUE CLIENT AND CREATE A QUEUE
+
+
+
+    # ADD CODE TO SEND AND LIST MESSAGES
+
+
+
+    # ADD CODE TO UPDATE A MESSAGE AND LIST MESSAGES
+
+
+
+    # ADD CODE TO DELETE MESSAGES AND THE QUEUE
+
     ```
     
 3. Press **ctrl+s** to save your changes.
@@ -613,30 +610,23 @@ Now that the needed resources are deployed to Azure the next step is to set up t
 
 Now it's time to add code to create the queue storage client and create a queue.
 
-1. Locate the **// ADD CODE TO CREATE A QUEUE CLIENT AND CREATE A QUEUE** comment and add the following code directly after the comment. Be sure to review the code and comments.
+1. Locate the **# ADD CODE TO CREATE A QUEUE CLIENT AND CREATE A QUEUE** comment and add the following code directly after the comment. Be sure to review the code and comments.
     
-    codeCopy
-    
-    ```
-    // Create a DefaultAzureCredentialOptions object to exclude certain credentials
-    DefaultAzureCredentialOptions options = new()
-    {
-        ExcludeEnvironmentCredential = true,
-        ExcludeManagedIdentityCredential = true
-    };
-    
-    // Instantiate a QueueClient to create and interact with the queue
-    QueueClient queueClient = new QueueClient(
-        new Uri($"https://{storageAccountName}.queue.core.windows.net/{queueName}"),
-        new DefaultAzureCredential(options));
-    
-    Console.WriteLine($"Creating queue: {queueName}");
-    
-    // Create the queue
-    await queueClient.CreateAsync();
-    
-    Console.WriteLine("Queue created, press Enter to add messages to the queue...");
-    Console.ReadLine();
+    ```python
+    # Create a DefaultAzureCredential instance
+    credential = DefaultAzureCredential()
+
+    # Instantiate a QueueClient to create and interact with the queue
+    account_url = f"https://{storage_account_name}.queue.core.windows.net"
+    queue_client = QueueClient(account_url, queue_name=queue_name, credential=credential)
+
+    print(f"Creating queue: {queue_name}")
+
+    # Create the queue
+    queue_client.create_queue()
+
+    print("Queue created, press Enter to add messages to the queue...")
+    input()
     ```
     
 2. Press **ctrl+s** to save the file, then continue with the exercise.
@@ -644,30 +634,26 @@ Now it's time to add code to create the queue storage client and create a queue.
 
 ### Add code to send and list messages in a queue
 
-1. Locate the **// ADD CODE TO SEND AND LIST MESSAGES** comment and add the following code directly after the comment. Be sure to review the code and comments.
+1. Locate the **# ADD CODE TO SEND AND LIST MESSAGES** comment and add the following code directly after the comment. Be sure to review the code and comments.
     
-    codeCopy
-    
-    ```
-    // Send several messages to the queue with the SendMessageAsync method.
-    await queueClient.SendMessageAsync("Message 1");
-    await queueClient.SendMessageAsync("Message 2");
-    
-    // Send a message and save the receipt for later use
-    SendReceipt receipt = await queueClient.SendMessageAsync("Message 3");
-    
-    Console.WriteLine("Messages added to the queue. Press Enter to peek at the messages...");
-    Console.ReadLine();
-    
-    // Peeking messages lets you view the messages without removing them from the queue.
-    
-    foreach (var message in (await queueClient.PeekMessagesAsync(maxMessages: 10)).Value)
-    {
-        Console.WriteLine($"Message: {message.MessageText}");
-    }
-    
-    Console.WriteLine("\nPress Enter to update a message in the queue...");
-    Console.ReadLine();
+    ```python
+    # Send several messages to the queue with the send_message method.
+    queue_client.send_message("Message 1")
+    queue_client.send_message("Message 2")
+
+    # Send a message and save the result for later use
+    saved_message = queue_client.send_message("Message 3")
+
+    print("Messages added to the queue. Press Enter to peek at the messages...")
+    input()
+
+    # Peeking messages lets you view the messages without removing them from the queue.
+    peeked_messages = queue_client.peek_messages(max_messages=10)
+    for message in peeked_messages:
+        print(f"Message: {message.content}")
+
+    print("\nPress Enter to update a message in the queue...")
+    input()
     ```
     
 2. Press **ctrl+s** to save the file, then continue with the exercise.
@@ -675,26 +661,26 @@ Now it's time to add code to create the queue storage client and create a queue.
 
 ### Add code to update a message and list the results
 
-1. Locate the **// ADD CODE TO UPDATE A MESSAGE AND LIST MESSAGES** comment and add the following code directly after the comment. Be sure to review the code and comments.
+1. Locate the **# ADD CODE TO UPDATE A MESSAGE AND LIST MESSAGES** comment and add the following code directly after the comment. Be sure to review the code and comments.
     
-    codeCopy
-    
-    ```
-    // Update a message with the UpdateMessageAsync method and the saved receipt
-    await queueClient.UpdateMessageAsync(receipt.MessageId, receipt.PopReceipt, "Message 3 has been updated");
-    
-    Console.WriteLine("Message three updated. Press Enter to peek at the messages again...");
-    Console.ReadLine();
-    
-    
-    // Peek messages from the queue to compare updated content
-    foreach (var message in (await queueClient.PeekMessagesAsync(maxMessages: 10)).Value)
-    {
-        Console.WriteLine($"Message: {message.MessageText}");
-    }
-    
-    Console.WriteLine("\nPress Enter to delete messages from the queue...");
-    Console.ReadLine();
+    ```python
+    # Update a message with the update_message method and the saved message
+    queue_client.update_message(
+        saved_message.id,
+        saved_message.pop_receipt,
+        "Message 3 has been updated"
+    )
+
+    print("Message three updated. Press Enter to peek at the messages again...")
+    input()
+
+    # Peek messages from the queue to compare updated content
+    peeked_messages = queue_client.peek_messages(max_messages=10)
+    for message in peeked_messages:
+        print(f"Message: {message.content}")
+
+    print("\nPress Enter to delete messages from the queue...")
+    input()
     ```
     
 2. Press **ctrl+s** to save the file, then continue with the exercise.
@@ -702,29 +688,27 @@ Now it's time to add code to create the queue storage client and create a queue.
 
 ### Add code to delete messages and the queue
 
-1. Locate the **// ADD CODE TO DELETE MESSAGES AND THE QUEUE** comment and add the following code directly after the comment. Be sure to review the code and comments.
+1. Locate the **# ADD CODE TO DELETE MESSAGES AND THE QUEUE** comment and add the following code directly after the comment. Be sure to review the code and comments.
     
-    codeCopy
-    
-    ```
-    // Delete messages from the queue with the DeleteMessagesAsync method.
-    foreach (var message in (await queueClient.ReceiveMessagesAsync(maxMessages: 10)).Value)
-    {
-        // "Process" the message
-        Console.WriteLine($"Deleting message: {message.MessageText}");
-    
-        // Let the service know we're finished with the message and it can be safely deleted.
-        await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
-    }
-    Console.WriteLine("Messages deleted from the queue.");
-    Console.WriteLine("\nPress Enter key to delete the queue...");
-    Console.ReadLine();
-    
-    // Delete the queue with the DeleteAsync method.
-    Console.WriteLine($"Deleting queue: {queueClient.Name}");
-    await queueClient.DeleteAsync();
-    
-    Console.WriteLine("Done");
+    ```python
+    # Receive and delete messages from the queue
+    messages = queue_client.receive_messages(max_messages=10)
+    for message in messages:
+        # "Process" the message
+        print(f"Deleting message: {message.content}")
+
+        # Let the service know we're finished with the message and it can be safely deleted.
+        queue_client.delete_message(message.id, message.pop_receipt)
+
+    print("Messages deleted from the queue.")
+    print("\nPress Enter key to delete the queue...")
+    input()
+
+    # Delete the queue with the delete_queue method.
+    print(f"Deleting queue: {queue_name}")
+    queue_client.delete_queue()
+
+    print("Done")
     ```
     
 2. Press **ctrl+s** to save the file, then **ctrl+q** to exit the editor.
@@ -733,7 +717,7 @@ Now it's time to add code to create the queue storage client and create a queue.
 1. In the cloud shell command-line pane, enter the following command to sign into Azure.
     
     
-    ```
+    ```bash
     az login
     ```
     
@@ -744,7 +728,7 @@ Now it's time to add code to create the queue storage client and create a queue.
 2. Run the following command to start the console app. The app will pause many times during execution waiting for you to press any key to continue. This gives you an opportunity to view the messages in the Azure portal.
     
     
-    ```
+    ```bash
     python script.py
     ```
     
