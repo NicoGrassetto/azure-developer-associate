@@ -814,52 +814,62 @@ async def main():
 
 #### Process events using an Event Processor client
 
-For most production scenarios, the recommendation is to use `EventProcessorClient` for reading and processing events. Since the `EventProcessorClient` has a dependency on Azure Storage blobs for persistence of its state, you need to provide a `BlobContainerClient` for the processor, which has been configured for the storage account and container that should be used.
+For most production scenarios, the recommendation is to use `EventHubConsumerClient` with a `checkpoint_store` for reading and processing events with load balancing and checkpointing. Since the consumer client has a dependency on Azure Storage blobs for persistence of its state, you need to provide a `BlobCheckpointStore` for the consumer, which has been configured for the storage account and container that should be used.
 
 
 ```python
-from azure.eventhub.aio import EventProcessorClient
+from azure.eventhub.aio import EventHubConsumerClient
 from azure.eventhub.extensions.checkpointstoreblobaio import BlobCheckpointStore
-from azure.storage.blob.aio import BlobServiceClient
+from azure.identity.aio import DefaultAzureCredential
 import asyncio
-import contextlib
 
-storage_connection_str = "<< CONNECTION STRING FOR THE STORAGE ACCOUNT >>"
-blob_container_name = "<< NAME OF THE BLOB CONTAINER >>"
-eventhubs_connection_str = "<< CONNECTION STRING FOR THE EVENT HUBS NAMESPACE >>"
+fully_qualified_namespace = "<< EVENT HUBS FULLY QUALIFIED NAMESPACE >>"
 eventhub_name = "<< NAME OF THE EVENT HUB >>"
 consumer_group = "<< NAME OF THE EVENT HUB CONSUMER GROUP >>"
+blob_account_url = "<< STORAGE ACCOUNT URL >>"
+container_name = "<< NAME OF THE BLOB CONTAINER >>"
 
-async def process_event(partition_context, event):
+async def on_event(partition_context, event):
     # Process the event here.
     print(f"Received event from partition: {partition_context.partition_id}")
-    # Update checkpoint in blob storage so that the processor remembers the progress.
+    # Update checkpoint in blob storage so that the consumer remembers the progress.
     await partition_context.update_checkpoint(event)
 
-async def process_error(partition_context, error):
+async def on_error(partition_context, error):
     # Handle errors here.
-    print(f"Error on partition {partition_context.partition_id}: {error}")
+    if partition_context:
+        print(f"Error on partition {partition_context.partition_id}: {error}")
+    else:
+        print(f"Error during load balancing: {error}")
 
 async def main():
-    blob_service_client = BlobServiceClient.from_connection_string(storage_connection_str)
-    checkpoint_store = BlobCheckpointStore(blob_service_client, blob_container_name)
-    processor = EventProcessorClient(
-        fully_qualified_namespace=eventhubs_connection_str.split(";")[0].replace("Endpoint=sb://", "").rstrip("/"),
+    checkpoint_store = BlobCheckpointStore(
+        blob_account_url=blob_account_url,
+        container_name=container_name,
+        credential=DefaultAzureCredential()
+    )
+    client = EventHubConsumerClient(
+        fully_qualified_namespace=fully_qualified_namespace,
         eventhub_name=eventhub_name,
         consumer_group=consumer_group,
-        credential=None,  # Use DefaultAzureCredential or another credential in production
-        checkpoint_store=checkpoint_store,
-        connection_str=eventhubs_connection_str
+        credential=DefaultAzureCredential(),
+        checkpoint_store=checkpoint_store  # For load balancing and checkpoint
     )
 
     timeout = 45  # seconds
 
-    async with processor:
-        await processor.start()
+    async with client:
+        receive_task = asyncio.create_task(
+            client.receive(
+                on_event=on_event,
+                on_error=on_error,
+                starting_position="-1"  # "-1" is from the beginning of the partition.
+            )
+        )
         try:
             await asyncio.sleep(timeout)
         finally:
-            await processor.stop()
+            receive_task.cancel()
 
 # To run the async function:
 # asyncio.run(main())
@@ -868,19 +878,17 @@ async def main():
 ### Send and retrieve events from Azure Event Hubs
 
 #### Create Azure Event Hubs resources
-
-    ```
-    az group create --name myResourceGroup --location eastus
-    ```
-    
-2. Many of the commands require unique names and use the same parameters. Creating some variables will reduce the changes needed to the commands that create resources. Run the following commands to create the needed variables. Replace **myResourceGroup** with the name you you're using for this exercise. If you changed the location in the previous step, make the same change in the **location** variable.
+```bash
+az group create --name myResourceGroup --location eastus
+``` 
+Many of the commands require unique names and use the same parameters. Creating some variables will reduce the changes needed to the commands that create resources. Run the following commands to create the needed variables. Replace **myResourceGroup** with the name you you're using for this exercise. If you changed the location in the previous step, make the same change in the **location** variable.
 
     
-    ```
-    resourceGroup=myResourceGroup
-    location=eastus
-    namespaceName=eventhubsns$RANDOM
-    ```
+```bash
+resourceGroup=myResourceGroup
+location=eastus
+namespaceName=eventhubsns$RANDOM
+```
     
 
 ##### Create an Azure Event Hubs namespace and event hub
@@ -889,13 +897,13 @@ An Azure Event Hubs namespace is a logical container for event hub resources wit
 
 1. Run the following command to create an Event Hubs namespace.
     
-    ```
+    ```bash
     az eventhubs namespace create --name $namespaceName --resource-group $resourceGroup -l $location
     ```
     
 2. Run the following command to create an event hub named **myEventHub** in the Event Hubs namespace.
     
-    ```
+    ```bash
     az eventhubs eventhub create --name myEventHub --resource-group $resourceGroup \
       --namespace-name $namespaceName
     ```
@@ -906,7 +914,7 @@ An Azure Event Hubs namespace is a logical container for event hub resources wit
 To allow your app to send and receive messages, assign your Microsoft Entra user to the **Azure Service Bus Data Owner** role at the Service Bus namespace level. This gives your user account permission to manage and access queues and topics using Azure RBAC. Perform the following steps in the cloud shell.
 
 1. Run the following command to retrieve the **userPrincipalName** from your account. This represents who the role will be assigned to.    
-    ```
+    ```bash
     userPrincipal=$(az rest --method GET --url https://graph.microsoft.com/v1.0/me \
         --headers 'Content-Type=application/json' \
         --query userPrincipalName --output tsv)
@@ -915,14 +923,14 @@ To allow your app to send and receive messages, assign your Microsoft Entra user
 2. Run the following command to retrieve the resource ID of the Service Bus namespace. The resource ID sets the scope for the role assignment to a specific namespace.
     
     
-    ```
+    ```bash
     resourceID=$(az eventhubs namespace show --resource-group $resourceGroup \
         --name $namespaceName --query id --output tsv)
     ```
     
 3. Run the following command to create and assign the **Azure Event Hubs Data Owner** role, which gives you permission to send and retrieve events.
     
-    ```
+    ```bash
     az role assignment create --assignee $userPrincipal \
         --role "Azure Event Hubs Data Owner" \
         --scope $resourceID
@@ -935,7 +943,7 @@ Now that the needed resources are deployed to Azure the next step is to set up t
 
 1. Run the following commands to create a directory to contain the project and change into the project directory.
     
-    ```
+    ```bash
     mkdir eventhubs
     cd eventhubs
     ```
@@ -1042,29 +1050,32 @@ In this section you add code to create the producer and consumer clients to send
         credential=credential
     )
 
+    received_events = []
+
+    async def on_event(partition_context, event):
+        received_events.append(event)
+        print(f"Retrieved event: {event.body_as_str()}")
+
     async def receive_events():
         print("\nRetrieving all events from the hub...")
         
         async with consumer:
-            partition_ids = await consumer.get_partition_ids()
-            total_event_count = 0
-            
-            for partition_id in partition_ids:
-                properties = await consumer.get_partition_properties(partition_id)
-                if properties['last_enqueued_sequence_number'] >= properties['beginning_sequence_number']:
-                    total_event_count += (properties['last_enqueued_sequence_number'] - properties['beginning_sequence_number'] + 1)
-            
-            retrieved_count = 0
-            async for partition_event in consumer.receive_batch(starting_position="-1"):
-                if partition_event.data:
-                    print(f"Retrieved event: {partition_event.data.decode()}")
-                    retrieved_count += 1
-                    if retrieved_count >= total_event_count:
-                        print("Done retrieving events. Press Enter to exit...")
-                        input()
-                        return
+            # Receive events for a short period (5 seconds) to gather sent events
+            await asyncio.wait_for(
+                consumer.receive(
+                    on_event=on_event,
+                    starting_position="-1"  # "-1" is from the beginning of the partition
+                ),
+                timeout=5.0
+            )
 
-    asyncio.run(receive_events())
+    try:
+        asyncio.run(receive_events())
+    except asyncio.TimeoutError:
+        pass  # Expected - we use timeout to stop receiving
+    
+    print(f"\nTotal events retrieved: {len(received_events)}")
+    input("Press Enter to exit...")
     ```
     
 4. Press **ctrl+s** to save the file, then **ctrl+q** to exit the editor.
@@ -1075,7 +1086,7 @@ In this section you add code to create the producer and consumer clients to send
 1. In the cloud shell command-line pane, enter the following command to sign into Azure.
     
     
-    ```
+    ```bash
     az login
     ```
     
@@ -1086,7 +1097,7 @@ In this section you add code to create the producer and consumer clients to send
 2. Start the application by running the following command:
     
     
-    ```
+    ```bash
     python script.py
     ```
     
