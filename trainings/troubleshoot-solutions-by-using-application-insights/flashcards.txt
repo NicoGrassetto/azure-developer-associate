@@ -1,0 +1,173 @@
+# Azure Application Insights - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure Application Insights?	An Application Performance Management (APM) service providing monitoring, diagnostics, and analytics for web applications and services	azure,app-insights,basics
+
+What is Azure Monitor?	A comprehensive monitoring solution for Azure resources that includes Application Insights, Log Analytics, Metrics, and Alerts	azure,monitor,basics
+
+What is the relationship between Application Insights and Azure Monitor?	Application Insights is a feature/component of Azure Monitor, specifically for application-level telemetry	azure,app-insights,monitor
+
+What types of telemetry does Application Insights collect?	Requests, dependencies, exceptions, traces, events, metrics, page views, custom telemetry	azure,app-insights,telemetry
+
+What is automatic instrumentation?	Collecting telemetry without code changes using Application Insights agents or SDKs	azure,app-insights,instrumentation
+
+What platforms support automatic instrumentation?	Azure App Service, Azure Functions, Virtual Machines (with agent), Kubernetes (with agent)	azure,app-insights,instrumentation
+
+What is the Application Insights SDK?	Client library that enables custom telemetry collection and correlation in applications	azure,app-insights,sdk
+
+What SDKs are available for Application Insights?	.NET, .NET Core, Java, Node.js, JavaScript, Python	azure,app-insights,sdk
+
+What is the instrumentation key?	Unique identifier connecting application telemetry to an Application Insights resource (legacy, replaced by connection string)	azure,app-insights,configuration
+
+What is the connection string in Application Insights?	Modern configuration that includes endpoint and instrumentation key, replacing standalone instrumentation key	azure,app-insights,configuration
+
+What is a request in Application Insights?	An HTTP request to your application, tracked with URL, duration, response code, and user information	azure,app-insights,telemetry,request
+
+What is a dependency in Application Insights?	External calls made by your application (database, REST API, storage), tracked with duration and result	azure,app-insights,telemetry,dependency
+
+What is an exception in Application Insights?	Unhandled or logged exceptions with stack traces and context information	azure,app-insights,telemetry,exception
+
+What is a trace in Application Insights?	Diagnostic log message from your application code, similar to ILogger messages	azure,app-insights,telemetry,trace
+
+What is custom telemetry?	Application-specific events and metrics manually tracked using TrackEvent, TrackMetric, TrackTrace methods	azure,app-insights,telemetry,custom
+
+An e-commerce site wants to track shopping cart additions. What Application Insights feature enables this?	Custom events using TrackEvent("AddToCart") with properties like product ID and quantity	azure,app-insights,use-case,custom
+
+What is the Application Map?	Visual representation showing application components and their dependencies with performance and health indicators	azure,app-insights,features,app-map
+
+What is Live Metrics Stream?	Real-time dashboard showing live telemetry (requests, dependencies, exceptions) with < 1 second latency	azure,app-insights,features,live-metrics
+
+What is the Performance blade?	Analysis tool showing request duration, dependency duration, and identifying slow operations	azure,app-insights,features,performance
+
+What is the Failures blade?	View showing exception rates, failed requests, and dependency failures with drill-down capabilities	azure,app-insights,features,failures
+
+What is distributed tracing?	Tracking requests across multiple services and dependencies, correlating telemetry with operation IDs	azure,app-insights,distributed-tracing
+
+What is the operation ID?	Unique identifier correlating all telemetry items belonging to the same user request across services	azure,app-insights,distributed-tracing
+
+A microservices application spans 5 services. How can you trace requests end-to-end?	Application Insights distributed tracing automatically correlates telemetry across services using operation IDs	azure,app-insights,use-case,distributed-tracing
+
+What is telemetry correlation?	Linking related telemetry items across services and components using correlation IDs	azure,app-insights,correlation
+
+What is sampling in Application Insights?	Reducing telemetry volume by collecting a representative subset, lowering costs while maintaining insights	azure,app-insights,sampling
+
+What types of sampling are available?	1. Adaptive (automatic adjustment), 2. Fixed-rate (consistent percentage), 3. Ingestion (server-side)	azure,app-insights,sampling
+
+When should you use sampling?	High-volume applications exceeding data limits or budget, where representative data is sufficient	azure,app-insights,sampling,use-case
+
+What is adaptive sampling?	Automatic adjustment of sampling rate to stay within rate limits while maximizing telemetry value	azure,app-insights,sampling,adaptive
+
+What is the difference between client-side and server-side sampling?	Client-side: reduces bandwidth and data sent. Server-side: reduces storage costs at ingestion.	azure,app-insights,sampling
+
+What is Kusto Query Language (KQL)?	Query language for analyzing telemetry data in Application Insights and Log Analytics	azure,app-insights,kql
+
+What is a basic KQL query structure?	TableName | where condition | project columns | summarize aggregation	azure,app-insights,kql
+
+What tables are available in Application Insights?	requests, dependencies, exceptions, traces, customEvents, customMetrics, pageViews, availabilityResults	azure,app-insights,tables
+
+How do you query failed requests in last 24 hours?	requests | where timestamp > ago(24h) and success == false	azure,app-insights,kql,use-case
+
+How do you find slowest dependencies?	dependencies | summarize avg(duration) by name | order by avg_duration desc	azure,app-insights,kql,use-case
+
+What is an alert rule in Application Insights?	Automated notification triggered when telemetry meets specified conditions (metric threshold, log query)	azure,app-insights,alerts
+
+What types of alert rules are available?	1. Metric alerts (threshold-based), 2. Log query alerts (KQL-based), 3. Smart detection (AI-based anomalies)	azure,app-insights,alerts
+
+What is smart detection in Application Insights?	AI-powered anomaly detection automatically identifying unusual patterns (performance degradation, failure spikes)	azure,app-insights,smart-detection
+
+What anomalies does smart detection identify?	Performance degradation, failure rate increases, abnormal increase in dependency duration, memory leaks	azure,app-insights,smart-detection
+
+A web app response time suddenly increases. How can you be notified automatically?	Smart detection automatically identifies and alerts on performance anomalies, or create metric alert on request duration	azure,app-insights,use-case,alerts
+
+What is availability testing in Application Insights?	Automated testing pinging your application from multiple global locations to monitor uptime and responsiveness	azure,app-insights,availability
+
+What types of availability tests are available?	1. URL ping test (simple GET), 2. Standard test (GET with validation), 3. Custom TrackAvailability (code-based)	azure,app-insights,availability
+
+How many locations should availability tests use?	Minimum 5 locations to avoid false positives and provide geographic coverage	azure,app-insights,availability,best-practices
+
+What is the Application Insights Profiler?	Tool capturing call stacks of running applications to identify performance bottlenecks and hot code paths	azure,app-insights,profiler
+
+What is the Snapshot Debugger?	Automatically captures snapshots when exceptions occur, providing full debugging context without stopping application	azure,app-insights,snapshot-debugger
+
+When should you use Profiler vs Snapshot Debugger?	Profiler: performance issues, identify slow code. Snapshot Debugger: exceptions, understand failure context.	azure,app-insights,comparison
+
+What is telemetry filtering?	Selecting which telemetry to send, filtering at SDK level before transmission	azure,app-insights,filtering
+
+What is telemetry processing?	Modifying telemetry properties before sending (adding/removing properties, enrichment)	azure,app-insights,processing
+
+What is a telemetry initializer?	Code that runs for every telemetry item, adding custom properties or modifying values	azure,app-insights,initializer
+
+A company wants to add region information to all telemetry. How to implement?	Create telemetry initializer that adds custom property "Region" to every telemetry item	azure,app-insights,use-case,initializer
+
+What is daily cap in Application Insights?	Limit on daily data ingestion volume to control costs, application stops sending telemetry after exceeding	azure,app-insights,pricing,cap
+
+What happens when daily cap is exceeded?	Telemetry is dropped until next day (UTC), sampling cannot prevent exceeding cap	azure,app-insights,pricing
+
+What is workspace-based Application Insights?	Modern mode storing data in Log Analytics workspace instead of classic Application Insights storage	azure,app-insights,workspace
+
+What are the benefits of workspace-based Application Insights?	Unified querying across multiple resources, integration with Azure Monitor Logs, better governance	azure,app-insights,workspace
+
+What is Application Insights continuous export (deprecated)?	Legacy feature exporting telemetry to Storage or Event Hub (replaced by diagnostic settings)	azure,app-insights,export
+
+What replaced continuous export?	Diagnostic settings - modern export to Log Analytics, Storage, Event Hub, or partner solutions	azure,app-insights,diagnostic-settings
+
+What is user tracking in Application Insights?	Tracking authenticated or anonymous users across sessions using user IDs and session IDs	azure,app-insights,users
+
+What is a session in Application Insights?	Group of user activities, identified by session ID cookie, expires after 30 minutes of inactivity	azure,app-insights,sessions
+
+What is the Users blade?	Analysis showing unique users, sessions, and events over time with cohort and retention analysis	azure,app-insights,features,users
+
+What is cohort analysis?	Grouping users based on shared characteristics or actions to analyze behavior patterns	azure,app-insights,cohorts
+
+What is retention analysis?	Measuring how many users return to your application after first visit within time periods	azure,app-insights,retention
+
+What is a funnel in Application Insights?	Visualization showing conversion rates through multi-step processes (e.g., browse → add to cart → checkout)	azure,app-insights,funnel
+
+An e-commerce site wants to identify checkout abandonment points. What Application Insights feature helps?	Funnel analysis showing drop-off rates at each step of the checkout process	azure,app-insights,use-case,funnel
+
+What is impact analysis?	Analyzing how page load times and properties affect conversion rates and user behavior	azure,app-insights,impact
+
+What is user flows visualization?	Diagram showing paths users take through your application pages and events	azure,app-insights,user-flows
+
+What is custom dimension in telemetry?	Additional property attached to telemetry item for filtering and grouping (e.g., environment, version)	azure,app-insights,custom-dimension
+
+What is custom metric?	Application-specific numeric measurement tracked over time (e.g., queue length, cache hits)	azure,app-insights,custom-metric
+
+What is the difference between custom events and custom metrics?	Events: discrete occurrences with properties. Metrics: numeric measurements tracked over time with aggregation.	azure,app-insights,comparison
+
+What is the metrics explorer?	Tool for visualizing and analyzing metrics with filtering, grouping, and splitting capabilities	azure,app-insights,metrics-explorer
+
+What is multi-dimensional metrics?	Metrics with dimensions allowing drill-down analysis (e.g., response time by region and operation)	azure,app-insights,metrics
+
+What is the logs workspace?	Unified log store for querying data across multiple Application Insights resources and Azure resources	azure,app-insights,logs
+
+Can you query multiple Application Insights resources together?	Yes, using cross-resource queries in Log Analytics workspace	azure,app-insights,cross-resource
+
+What is the recommended query pattern for large datasets?	Use time range filters, sample data, use summarize instead of raw data, limit result sets	azure,app-insights,kql,best-practices
+
+What is the Search blade?	Tool for searching individual telemetry items with filters for debugging specific issues	azure,app-insights,features,search
+
+What is the Transaction Search?	Finding and analyzing end-to-end transaction traces across multiple components	azure,app-insights,features,transaction-search
+
+What is Performance Testing integration (deprecated)?	Legacy feature for load testing (moved to Azure Load Testing)	azure,app-insights,load-testing
+
+What networking configurations does Application Insights support?	Private Link for secure ingestion, IP filtering, connection string endpoints	azure,app-insights,networking
+
+What is local forwarder for Application Insights?	Agent running on-premises or in VM that aggregates and forwards telemetry, reducing egress costs	azure,app-insights,local-forwarder
+
+What is the ingestion delay in Application Insights?	Typical telemetry appears within 1-2 minutes, can be up to 5 minutes for heavy load	azure,app-insights,latency
+
+What is the data retention period?	90 days by default (can be extended to 730 days for additional cost)	azure,app-insights,retention
+
+Can you export historical data from Application Insights?	Yes, using continuous export (deprecated) or diagnostic settings to send data to Storage for long-term retention	azure,app-insights,export
+
+What is the Application Insights REST API?	HTTP API for querying telemetry data, retrieving metrics, and managing resources programmatically	azure,app-insights,api
+
+What authentication does Application Insights API use?	Azure AD authentication with API key (legacy) or managed identity	azure,app-insights,api,authentication
+
+What is the pricing model for Application Insights?	Pay per GB of data ingested, first 5 GB per billing account per month free	azure,app-insights,pricing
+
+What factors affect Application Insights cost?	Data volume ingested, retention period beyond 90 days, availability test count, enterprise features	azure,app-insights,pricing
+
+How can you reduce Application Insights costs?	Enable sampling, filter unnecessary telemetry, set daily cap, use shorter retention, optimize custom telemetry	azure,app-insights,pricing,optimization

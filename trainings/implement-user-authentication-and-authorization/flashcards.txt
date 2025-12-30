@@ -1,0 +1,165 @@
+# Azure User Authentication and Authorization - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Microsoft Entra ID (formerly Azure AD)?	Microsoft's cloud-based identity and access management service providing authentication, single sign-on, and application access management	azure,authentication,entra-id,basics
+
+What is the Microsoft identity platform?	A collection of authentication services, libraries (MSAL), and tools for developers to authenticate users and access APIs	azure,authentication,identity-platform
+
+What is OAuth 2.0?	An authorization framework that enables applications to obtain limited access to user accounts, using access tokens for API authorization	azure,authentication,oauth
+
+What is OpenID Connect (OIDC)?	An authentication layer built on OAuth 2.0 that adds identity tokens (ID tokens) for user authentication information	azure,authentication,oidc
+
+What is the difference between OAuth 2.0 and OpenID Connect?	OAuth 2.0: Authorization (access delegation). OpenID Connect: Authentication (identity verification) built on OAuth 2.0.	azure,authentication,oauth,oidc
+
+What is an access token?	A credential used to access protected resources (APIs), contains claims about user permissions and scopes, typically short-lived (1 hour)	azure,authentication,tokens
+
+What is an ID token?	A JWT containing claims about user identity (name, email, sub), used for authentication, typically consumed by the client application	azure,authentication,tokens
+
+What is a refresh token?	A long-lived token used to obtain new access tokens without requiring the user to re-authenticate, stored securely	azure,authentication,tokens
+
+What is MSAL (Microsoft Authentication Library)?	Microsoft's library for authenticating users and acquiring tokens from Microsoft Entra ID, replacing the older ADAL library	azure,authentication,msal
+
+What are the main MSAL libraries available?	MSAL.NET (C#), MSAL.js (JavaScript), MSAL Python, MSAL Java, MSAL Node, MSAL Android, MSAL iOS	azure,authentication,msal
+
+What authentication flows does MSAL support?	1. Authorization code flow (web apps), 2. Implicit flow (legacy SPAs), 3. Client credentials (daemon apps), 4. Device code (devices without browser), 5. On-behalf-of (middle tier)	azure,authentication,msal,flows
+
+What is the authorization code flow?	OAuth flow where client exchanges an authorization code for tokens via backend, most secure for web apps with server-side code	azure,authentication,flows,authorization-code
+
+What is the authorization code flow with PKCE?	Enhanced authorization code flow for public clients (SPAs, mobile apps) using cryptographic challenge to prevent code interception	azure,authentication,flows,pkce
+
+A single-page application (SPA) needs to authenticate users. What MSAL flow should be used?	Authorization code flow with PKCE - recommended for SPAs over deprecated implicit flow	azure,authentication,use-case,flows
+
+What is the client credentials flow?	OAuth flow for daemon/service applications to authenticate as themselves (not on behalf of a user) using client ID and secret	azure,authentication,flows,client-credentials
+
+What is the on-behalf-of (OBO) flow?	Flow where a middle-tier service exchanges a user's access token for a new token to call downstream APIs on behalf of the user	azure,authentication,flows,obo
+
+A web API called by a client needs to call another API on behalf of the user. What flow is needed?	On-behalf-of (OBO) flow - exchanges incoming user token for token to call downstream API	azure,authentication,use-case,flows
+
+What is a Shared Access Signature (SAS)?	A URI that grants restricted access to Azure Storage resources with specified permissions and time duration	azure,authentication,sas,storage
+
+What types of SAS tokens are available for Azure Storage?	1. User delegation SAS (secured with Azure AD, recommended), 2. Service SAS (secured with account key), 3. Account SAS (multiple services)	azure,authentication,sas
+
+Why is user delegation SAS recommended over service SAS?	User delegation SAS uses Azure AD credentials instead of account keys, providing better security and allowing revocation without key rotation	azure,authentication,sas,best-practices
+
+What is the difference between Service SAS and Account SAS?	Service SAS: access to specific service (blob, file, queue, table). Account SAS: access to multiple services in a storage account.	azure,authentication,sas
+
+What parameters can be controlled in a SAS token?	Permissions, resource scope, start/expiry time, IP address restrictions, protocol (HTTP/HTTPS), signed identifier (stored access policy)	azure,authentication,sas
+
+What is a stored access policy for SAS?	A policy defined at container/share level that controls SAS parameters, enabling centralized management and revocation	azure,authentication,sas,stored-policy
+
+A mobile app needs temporary write access to a specific blob container. How should this be implemented?	Generate a service SAS token with write permission for the container, limited time window, return to app for direct upload	azure,authentication,use-case,sas
+
+What is App Service Authentication (Easy Auth)?	Built-in authentication for App Service and Azure Functions that handles authentication with multiple identity providers without code changes	azure,authentication,easy-auth
+
+What identity providers does Easy Auth support?	Microsoft Entra ID, Facebook, Google, Twitter, Apple, and any OpenID Connect provider	azure,authentication,easy-auth,providers
+
+What is the difference between authenticated and unauthenticated access in Easy Auth?	Authenticated: requires sign-in, enforced by App Service before reaching app code. Unauthenticated: allows anonymous access, app handles authentication logic.	azure,authentication,easy-auth
+
+Where does Easy Auth run in the request pipeline?	In a module that runs before application code (in the same sandbox), intercepting and handling authentication	azure,authentication,easy-auth
+
+What are claims in authentication tokens?	Key-value pairs containing information about the user (identity, roles, permissions) embedded in JWT tokens	azure,authentication,tokens,claims
+
+What is a JWT (JSON Web Token)?	A compact, URL-safe token format containing claims, digitally signed for integrity verification, used for access and ID tokens	azure,authentication,tokens,jwt
+
+What are the three parts of a JWT?	1. Header (algorithm and token type), 2. Payload (claims), 3. Signature (verification)	azure,authentication,tokens,jwt
+
+What is token validation?	Process of verifying token signature, expiration, issuer, and audience to ensure token authenticity and validity	azure,authentication,tokens,validation
+
+What claims should be validated in an access token?	Issuer (iss), audience (aud), expiration (exp), not before (nbf), signature verification	azure,authentication,tokens,validation
+
+What is the difference between access token and ID token validation?	Access tokens: validated by APIs receiving them. ID tokens: validated by client applications receiving them from identity provider.	azure,authentication,tokens,validation
+
+What is Microsoft Graph API?	Unified API endpoint for accessing Microsoft 365, Azure AD, and other Microsoft cloud services data (users, groups, mail, calendar)	azure,authentication,microsoft-graph
+
+What permissions types does Microsoft Graph support?	1. Delegated permissions (on behalf of signed-in user), 2. Application permissions (as app itself, no user context)	azure,authentication,microsoft-graph,permissions
+
+A background service needs to read all users from Entra ID. What permission type is required?	Application permissions - service runs without user context, requires admin consent	azure,authentication,use-case,microsoft-graph
+
+What is admin consent in Entra ID?	Administrator approval required for applications requesting high-privilege permissions or application permissions	azure,authentication,entra-id,consent
+
+What is incremental consent?	Requesting permissions dynamically as needed rather than all at app registration, improving user experience	azure,authentication,consent
+
+What is Conditional Access in Entra ID?	Policies that enforce access controls based on conditions (user, location, device, risk) before granting access to resources	azure,authentication,entra-id,conditional-access
+
+What is Multi-Factor Authentication (MFA)?	Security method requiring two or more verification methods (password + phone, biometric, security key) for authentication	azure,authentication,mfa
+
+What is a service principal?	An identity for an application in Entra ID, enabling the app to authenticate and access resources with specific permissions	azure,authentication,service-principal
+
+What is the difference between Managed Identity and Service Principal?	Managed Identity: Azure-managed, automatic credential rotation, no secrets to manage. Service Principal: Manual management, explicit credentials, more flexible.	azure,authentication,comparison
+
+What is application registration in Entra ID?	Process of registering an application to use Microsoft identity platform, creating an identity and defining permissions	azure,authentication,entra-id,app-registration
+
+What information is obtained from app registration?	Application (client) ID, Directory (tenant) ID, client secret or certificate, redirect URIs, API permissions	azure,authentication,entra-id,app-registration
+
+What is a redirect URI?	The location where the identity provider sends authentication responses (tokens), must be registered with the application	azure,authentication,redirect-uri
+
+What is the token endpoint?	OAuth/OIDC endpoint where applications exchange authorization codes or credentials for access tokens	azure,authentication,endpoints
+
+What is the authorization endpoint?	OAuth/OIDC endpoint where users are redirected to sign in and grant consent	azure,authentication,endpoints
+
+What scopes should be requested for Microsoft Graph to read user profile?	User.Read (delegated permission for signed-in user profile)	azure,authentication,use-case,microsoft-graph
+
+What is the difference between static and dynamic scopes?	Static: all scopes requested at consent. Dynamic: scopes requested incrementally as needed during token acquisition.	azure,authentication,scopes
+
+What is a security token service (STS)?	Service that issues, validates, and renews security tokens, in Azure context refers to Entra ID endpoints	azure,authentication,sts
+
+What is single sign-on (SSO)?	Authentication method allowing users to sign in once and access multiple applications without re-authentication	azure,authentication,sso
+
+What is role-based access control (RBAC)?	Authorization model that grants access based on user roles, defining what actions users can perform on resources	azure,authentication,rbac
+
+What is the difference between authentication and authorization?	Authentication: verifying identity (who you are). Authorization: determining permissions (what you can do).	azure,authentication,basics
+
+What is app-only authentication?	Authentication without a user context, used by daemon apps and services using client credentials flow	azure,authentication,app-only
+
+What is delegated authentication?	Authentication on behalf of a signed-in user, used by applications accessing resources as the user	azure,authentication,delegated
+
+What is token caching in MSAL?	MSAL automatically caches tokens to reduce network calls, checking cache before requesting new tokens	azure,authentication,msal,caching
+
+What is silent token acquisition?	Acquiring tokens from cache or using refresh token without user interaction	azure,authentication,msal
+
+What happens when access token expires?	Application should use refresh token to silently acquire new access token, or prompt user to re-authenticate if refresh token is expired	azure,authentication,tokens,expiration
+
+What is the typical lifetime of an access token?	1 hour (60 minutes)	azure,authentication,tokens,lifetime
+
+What is the typical lifetime of a refresh token?	90 days for public clients, configurable for confidential clients	azure,authentication,tokens,lifetime
+
+What is a confidential client application?	Application that can securely maintain a secret (web apps, web APIs, daemon services), can use client credentials	azure,authentication,client-types
+
+What is a public client application?	Application that cannot securely maintain a secret (SPAs, mobile apps, desktop apps), requires PKCE	azure,authentication,client-types
+
+A web API needs to verify incoming access tokens. What should be validated?	Signature, issuer (iss), audience (aud), expiration (exp), scopes (scp/roles)	azure,authentication,use-case,validation
+
+What is the audience (aud) claim?	Identifies the intended recipient of the token, typically the application ID or API URI	azure,authentication,tokens,claims
+
+What is the scope (scp) claim?	Delegated permissions granted to the client application by the user	azure,authentication,tokens,claims
+
+What is the roles claim?	Application roles assigned to the user or application, used for RBAC authorization	azure,authentication,tokens,claims
+
+What is bearer token authentication?	HTTP authentication scheme where the token is sent in the Authorization header: "Bearer {token}"	azure,authentication,bearer-token
+
+What is the purpose of the nonce parameter in OIDC?	Cryptographic value to prevent token replay attacks, bound to the client session	azure,authentication,oidc,security
+
+What is PKCE (Proof Key for Code Exchange)?	Security extension for authorization code flow that prevents code interception attacks, required for public clients	azure,authentication,pkce,security
+
+What is the code verifier in PKCE?	Cryptographically random string created by client, hashed to create code challenge	azure,authentication,pkce
+
+What is the code challenge in PKCE?	Hashed version of code verifier sent to authorization endpoint, verified by token endpoint	azure,authentication,pkce
+
+What is logout in OAuth/OIDC?	Ending user session by clearing local tokens and optionally calling identity provider logout endpoint	azure,authentication,logout
+
+What is front-channel logout?	Logout using browser redirects, coordinating logout across multiple applications	azure,authentication,logout
+
+What is back-channel logout?	Direct server-to-server notification of logout events without browser involvement	azure,authentication,logout
+
+What is token revocation?	Invalidating tokens before expiration, primarily for refresh tokens to end user sessions	azure,authentication,revocation
+
+Can you revoke access tokens?	Access tokens cannot be revoked server-side (short-lived by design). Applications should validate on each request.	azure,authentication,tokens,revocation
+
+What is the OpenID Connect discovery document?	JSON document at /.well-known/openid-configuration describing OIDC provider endpoints and capabilities	azure,authentication,oidc,discovery
+
+A web app must support users from multiple Entra ID tenants. What configuration is needed?	Register as multi-tenant application, use /common or /organizations endpoint instead of tenant-specific endpoint	azure,authentication,use-case,multi-tenant
+
+What is the /common endpoint?	Microsoft identity endpoint supporting authentication for accounts from any Entra ID tenant or personal Microsoft accounts	azure,authentication,endpoints
+
+What is account selection?	Prompt allowing users to choose which account to use when multiple accounts are available	azure,authentication,account-selection
