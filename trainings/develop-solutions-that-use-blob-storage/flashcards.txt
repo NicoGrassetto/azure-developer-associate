@@ -1,0 +1,139 @@
+# Azure Blob Storage - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure Blob Storage?	Azure Blob Storage is Microsoft's object storage solution for the cloud, optimized for storing massive amounts of unstructured data like text, binary data, images, videos, and backups.	azure,blob-storage,basics
+
+What are the three types of blobs?	1. Block Blobs (text/binary, up to 190.7 TiB), 2. Append Blobs (append operations, logs, up to 195 GiB), 3. Page Blobs (random read/write, VHDs, up to 8 TiB)	azure,blob-storage,blob-types
+
+When should you use Block Blobs?	Use Block Blobs for text and binary data like documents, images, videos, backups - most common blob type for general file storage	azure,blob-storage,blob-types
+
+When should you use Append Blobs?	Use Append Blobs for scenarios requiring append operations like log files, streaming data, and audit trails where data is only added, not modified	azure,blob-storage,blob-types
+
+When should you use Page Blobs?	Use Page Blobs for random read/write operations, particularly for VHD disks for Azure VMs and database files requiring frequent random access	azure,blob-storage,blob-types
+
+What are the Azure Storage account performance tiers?	1. Standard (HDD-based, general purpose, lower cost), 2. Premium (SSD-based, low latency, high throughput)	azure,blob-storage,performance
+
+What are the blob access tiers?	1. Hot (frequent access, highest storage cost, lowest access cost), 2. Cool (infrequent access, 30-day minimum, lower storage cost), 3. Cold (rarely accessed, 90-day minimum), 4. Archive (offline, 180-day minimum, lowest storage cost, hours to rehydrate)	azure,blob-storage,access-tiers
+
+What is the minimum storage duration for Cool tier?	30 days - early deletion incurs a prorated charge	azure,blob-storage,access-tiers
+
+What is the minimum storage duration for Archive tier?	180 days - early deletion incurs a prorated charge	azure,blob-storage,access-tiers
+
+How long does it take to rehydrate a blob from Archive tier?	Standard priority: less than 15 hours. High priority: less than 1 hour (higher cost)	azure,blob-storage,access-tiers,archive
+
+A company stores security camera footage that must be kept for 1 year but is rarely accessed. What access tier is most cost-effective?	Archive tier - lowest storage cost for rarely accessed data with long retention requirements	azure,blob-storage,use-case,access-tiers
+
+What is blob lifecycle management?	Automated policies that transition blobs between access tiers or delete them based on rules (age, last modified, last accessed) to optimize costs	azure,blob-storage,lifecycle
+
+What actions can lifecycle management policies perform?	1. Transition blobs to cooler tiers, 2. Delete blobs and snapshots, 3. Based on age or last access time	azure,blob-storage,lifecycle
+
+A company wants to automatically move blobs to Cool tier after 30 days and Archive after 90 days. What should be configured?	Blob lifecycle management policy with rules to transition to Cool after 30 days and Archive after 90 days	azure,blob-storage,use-case,lifecycle
+
+What is blob versioning?	Automatic maintenance of previous versions of a blob whenever it's modified or deleted, enabling recovery from accidental changes	azure,blob-storage,versioning
+
+What is soft delete for blobs?	Soft delete retains deleted blobs for a configured retention period (1-365 days), allowing recovery before permanent deletion	azure,blob-storage,soft-delete
+
+What is the difference between blob versioning and soft delete?	Versioning: keeps all versions of modified blobs. Soft delete: retains deleted blobs for recovery. Both provide data protection but for different scenarios.	azure,blob-storage,data-protection
+
+What is blob snapshot?	A read-only copy of a blob at a specific point in time. Snapshots share blocks with base blob until modified, making them storage-efficient.	azure,blob-storage,snapshots
+
+What is immutable storage?	Immutable storage (WORM - Write Once Read Many) prevents blobs from being modified or deleted for a specified retention period, meeting compliance requirements	azure,blob-storage,immutability
+
+What types of immutability policies are available?	1. Time-based retention (legal hold for specified period), 2. Legal hold (indefinite until explicitly removed)	azure,blob-storage,immutability
+
+A financial services company must retain records for 7 years without modification per regulations. What blob feature should be used?	Immutable storage with time-based retention policy set to 7 years	azure,blob-storage,use-case,immutability
+
+What is blob index tags?	Key-value metadata tags that enable finding and managing blobs across containers using queries, separate from traditional metadata	azure,blob-storage,index-tags
+
+What's the difference between blob metadata and index tags?	Metadata: stored with blob, retrieved with blob properties. Index tags: queryable across containers, enabling powerful search and categorization.	azure,blob-storage,index-tags
+
+What is a storage account?	A storage account provides a unique namespace for Azure Storage data, containing blobs, files, queues, and tables with configurable redundancy and access	azure,blob-storage,storage-account
+
+What redundancy options are available for storage accounts?	1. LRS (Locally Redundant), 2. ZRS (Zone Redundant), 3. GRS (Geo-Redundant), 4. RA-GRS (Read-Access Geo-Redundant), 5. GZRS (Geo-Zone Redundant), 6. RA-GZRS	azure,blob-storage,redundancy
+
+What is the difference between GRS and RA-GRS?	GRS: data replicated to secondary region, readable only after failover. RA-GRS: data in secondary region is readable at all times.	azure,blob-storage,redundancy
+
+A company needs 99.99999999999999% (16 9's) durability. What redundancy option provides this?	GRS or GZRS provides 16 9's durability by replicating data to a secondary region	azure,blob-storage,redundancy,use-case
+
+What is Shared Access Signature (SAS)?	A URI that grants restricted access to Azure Storage resources with specified permissions and time duration, without sharing account keys	azure,blob-storage,security,sas
+
+What types of SAS are available?	1. User delegation SAS (secured with Azure AD credentials, best security), 2. Service SAS (secured with account key), 3. Account SAS (access to multiple services)	azure,blob-storage,sas
+
+When should you use user delegation SAS over service SAS?	Use user delegation SAS for better security as it uses Azure AD credentials instead of account keys, allowing revocation without key rotation	azure,blob-storage,sas,best-practices
+
+What parameters can be specified in a SAS token?	Permissions (read, write, delete, list), resource (blob, container), start/expiry time, IP address restrictions, protocol (HTTPS only)	azure,blob-storage,sas
+
+A web app needs to allow users to upload images directly to blob storage without backend code. What security mechanism enables this?	Generate a SAS token with write permission for specific blob/container, return to client for direct upload	azure,blob-storage,use-case,sas
+
+What is a stored access policy?	A stored access policy defines SAS constraints at the container level, enabling centralized management and revocation of multiple SAS tokens	azure,blob-storage,sas,stored-policy
+
+What are the advantages of stored access policies?	Allows changing or revoking permissions without regenerating SAS tokens, provides centralized control over access	azure,blob-storage,sas,best-practices
+
+What authentication methods are available for blob storage?	1. Shared Key (account key), 2. Shared Access Signature (SAS), 3. Azure Active Directory (recommended), 4. Anonymous public read access	azure,blob-storage,authentication
+
+What is the recommended authentication method for blob storage?	Azure Active Directory (Azure AD) with Managed Identities for applications, providing better security without managing keys	azure,blob-storage,authentication,best-practices
+
+What is anonymous public access in blob storage?	Container or blob level public read access without authentication, suitable for public content like images, but disabled by default for security	azure,blob-storage,security
+
+Can you disable anonymous public access at the storage account level?	Yes, you can disallow public access at the storage account level to enforce authentication for all containers and blobs	azure,blob-storage,security
+
+What is Azure Storage Explorer?	A standalone desktop application for managing Azure Storage resources, providing GUI for upload/download/manage blobs, queues, tables, and files	azure,blob-storage,tools
+
+What is AzCopy?	A command-line utility for high-performance copying of data to/from Azure Storage, supporting parallel transfers and resumable operations	azure,blob-storage,tools,azcopy
+
+A company needs to bulk-upload 1 TB of data to blob storage. What tool is recommended?	AzCopy - optimized for high-performance bulk transfers with parallel operations and resume capability	azure,blob-storage,use-case,tools
+
+What is blob lease?	A lock mechanism that provides exclusive write and delete access to a blob, preventing other clients from modifying it during lease period	azure,blob-storage,lease
+
+What is the lease duration range?	15 to 60 seconds, or infinite (must be explicitly released)	azure,blob-storage,lease
+
+When should you use blob leasing?	Use for distributed systems needing exclusive access, implementing distributed locks, or ensuring single writer for blob updates	azure,blob-storage,lease,use-case
+
+What is blob change feed?	A log of all changes (create, modify, delete) to blobs in a storage account, enabling event-driven processing and auditing	azure,blob-storage,change-feed
+
+What is static website hosting in blob storage?	Feature that serves static content (HTML, CSS, JS, images) directly from a $web container, ideal for static websites and SPAs	azure,blob-storage,static-websites
+
+What is the default document name for static website hosting?	index.html (configurable)	azure,blob-storage,static-websites
+
+Can you use custom domains with blob storage?	Yes, map custom domains to blob storage endpoints using CNAME records, with Azure CDN for HTTPS support	azure,blob-storage,networking
+
+What is Azure CDN integration with blob storage?	CDN caches blob content at edge locations worldwide, reducing latency and bandwidth costs for frequently accessed content	azure,blob-storage,cdn
+
+A company serves images globally and wants to reduce latency. What Azure services should be combined?	Azure Blob Storage with Azure CDN - CDN caches images at edge locations close to users	azure,blob-storage,use-case,cdn
+
+What networking features are available for blob storage?	1. Firewall rules (IP restrictions), 2. Virtual Network service endpoints, 3. Private endpoints (private IP in VNet)	azure,blob-storage,networking
+
+What is the most secure networking option for blob storage?	Private endpoints - provide private IP address in your VNet, eliminating public internet exposure	azure,blob-storage,networking,security
+
+What encryption is available for blob storage?	Encryption at rest (automatic, Microsoft-managed or customer-managed keys), encryption in transit (HTTPS/TLS), client-side encryption	azure,blob-storage,encryption
+
+What is Azure Storage encryption at rest?	Automatic encryption of all data written to Azure Storage using 256-bit AES encryption, transparent to applications	azure,blob-storage,encryption
+
+Can you use your own encryption keys with blob storage?	Yes, using customer-managed keys stored in Azure Key Vault, providing additional control over key rotation and access	azure,blob-storage,encryption
+
+What is the maximum size of a block blob?	Approximately 190.7 TiB (terabytes)	azure,blob-storage,limits
+
+What is the maximum number of blocks in a block blob?	50,000 blocks	azure,blob-storage,limits
+
+What is the maximum size of a single block in a block blob?	4000 MiB (mebibytes) for Put Block, 5000 MiB for Put Blob	azure,blob-storage,limits
+
+What is blob inventory?	A feature that generates CSV reports of blob metadata, properties, and checksums for auditing, compliance, and data management	azure,blob-storage,inventory
+
+What is object replication in blob storage?	Asynchronous copying of block blobs between storage accounts, useful for reducing latency, disaster recovery, and data residency requirements	azure,blob-storage,replication
+
+What conditions can trigger blob lifecycle policies?	Last modified time, creation time, last access time (requires last access tracking enabled), blob tier	azure,blob-storage,lifecycle
+
+What is last access time tracking?	Optional feature that tracks when blobs are read, enabling lifecycle policies based on access patterns (additional cost)	azure,blob-storage,lifecycle
+
+What is the blob storage REST API?	HTTP-based API for programmatic access to blob operations (upload, download, list, delete, metadata, properties)	azure,blob-storage,api
+
+What SDKs are available for Azure Blob Storage?	.NET, Java, Python, JavaScript/TypeScript, Go, C++, and REST API	azure,blob-storage,sdks
+
+What is the blob tier at the account level vs blob level?	Account level: default access tier for new blobs. Blob level: individual blob tier (can override account default)	azure,blob-storage,access-tiers
+
+Can you change a blob's tier after upload?	Yes, using Set Blob Tier operation to change between Hot, Cool, Cold, and Archive tiers	azure,blob-storage,access-tiers
+
+What happens to snapshots when you delete a blob?	By default, deleting a blob fails if snapshots exist. You must explicitly delete snapshots first or include snapshots in the delete operation.	azure,blob-storage,snapshots
+
+What is the difference between blob versioning and snapshots?	Versioning: automatic, maintains all versions. Snapshots: manual, creates specific point-in-time copies. Versioning is more comprehensive.	azure,blob-storage,data-protection

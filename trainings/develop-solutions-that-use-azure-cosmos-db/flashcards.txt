@@ -1,0 +1,127 @@
+# Azure Cosmos DB - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure Cosmos DB?	Azure Cosmos DB is a globally distributed, multi-model NoSQL database service offering low latency, automatic scaling, and multiple consistency levels with comprehensive SLAs.	azure,cosmosdb,basics
+
+What data models does Cosmos DB support?	NoSQL (document), Key-value, Column-family, Graph (Gremlin), Table, and MongoDB API	azure,cosmosdb,apis
+
+What APIs does Azure Cosmos DB provide?	1. NoSQL (Core SQL), 2. MongoDB, 3. Cassandra, 4. Gremlin (Graph), 5. Table	azure,cosmosdb,apis
+
+What is a partition key in Cosmos DB?	A partition key is a property used to distribute data across physical partitions. It's essential for scalability and determines the logical partition where items are stored.	azure,cosmosdb,partitioning
+
+Why is choosing the right partition key important?	The partition key affects query performance, scalability, and data distribution. Poor choices can lead to hot partitions, throttling, and performance issues.	azure,cosmosdb,partitioning,best-practices
+
+What are the Cosmos DB consistency levels from strongest to weakest?	1. Strong, 2. Bounded Staleness, 3. Session (default), 4. Consistent Prefix, 5. Eventual	azure,cosmosdb,consistency
+
+What is the default consistency level in Cosmos DB?	Session consistency - provides read-your-own-writes guarantees within a session	azure,cosmosdb,consistency
+
+When should you use Strong consistency?	Use Strong consistency when you need linearizability - reads always return the most recent committed write. Required for financial transactions, inventory management where absolute consistency is critical.	azure,cosmosdb,consistency,use-case
+
+What is the trade-off of using Strong consistency?	Higher latency and lower throughput compared to weaker consistency levels, as reads must contact multiple regions to ensure data is up-to-date	azure,cosmosdb,consistency
+
+A shopping cart application needs users to see their own recent changes. What consistency level is appropriate?	Session consistency - guarantees users read their own writes within their session, balancing consistency and performance	azure,cosmosdb,use-case,consistency
+
+What is a Request Unit (RU) in Cosmos DB?	RU is the normalized cost of database operations, including CPU, IOPS, and memory. Reading 1 KB item = 1 RU, writes/queries cost more.	azure,cosmosdb,throughput
+
+What are the throughput provisioning modes in Cosmos DB?	1. Provisioned throughput (manual or autoscale), 2. Serverless (pay per request)	azure,cosmosdb,throughput
+
+When should you use serverless vs provisioned throughput?	Serverless: Dev/test, unpredictable workloads, intermittent traffic. Provisioned: Production, predictable traffic, consistent performance requirements.	azure,cosmosdb,throughput,comparison
+
+What is autoscale throughput in Cosmos DB?	Autoscale automatically adjusts RU/s between 10% of max and configured max based on usage, providing cost optimization while ensuring performance.	azure,cosmosdb,throughput,autoscale
+
+What is a logical partition in Cosmos DB?	A logical partition is a set of items with the same partition key value, limited to 20 GB storage and unlimited throughput.	azure,cosmosdb,partitioning
+
+What is a physical partition in Cosmos DB?	A physical partition is an internally managed unit that can contain multiple logical partitions. Cosmos DB automatically manages physical partition distribution.	azure,cosmosdb,partitioning
+
+What is a hot partition and why is it problematic?	A hot partition occurs when one partition key receives disproportionate traffic, leading to throttling even if overall RU/s is not exceeded. It reduces scalability and performance.	azure,cosmosdb,partitioning,performance
+
+How can you avoid hot partitions?	Choose partition keys with high cardinality, even distribution of reads/writes, and avoid time-based keys like date. Consider composite keys for better distribution.	azure,cosmosdb,partitioning,best-practices
+
+What is the Change Feed in Cosmos DB?	Change Feed is a persistent log of changes (inserts and updates) to items in a container, ordered within each partition key, enabling event-driven architectures.	azure,cosmosdb,changefeed
+
+A system needs to sync data from Cosmos DB to Azure Search in real-time. What Cosmos DB feature should be used?	Change Feed - monitor changes and push updates to Azure Search using Azure Functions or Change Feed Processor	azure,cosmosdb,use-case,changefeed
+
+What is Time to Live (TTL) in Cosmos DB?	TTL automatically deletes items after a specified time period, useful for temporary data, cache scenarios, or compliance requirements.	azure,cosmosdb,ttl
+
+How do you enable TTL on a Cosmos DB container?	Set DefaultTimeToLive on the container (in seconds), then optionally override per item with ttl property. Set to -1 for no expiration, >0 for expiration time.	azure,cosmosdb,ttl
+
+What is a stored procedure in Cosmos DB?	A stored procedure is server-side JavaScript code that executes transactionally within a single partition, ensuring ACID properties.	azure,cosmosdb,stored-procedures
+
+Can a stored procedure access items across multiple partitions?	No, stored procedures are scoped to a single logical partition to maintain transactional guarantees	azure,cosmosdb,stored-procedures
+
+What are triggers in Cosmos DB?	Pre-triggers (execute before operations) and post-triggers (execute after operations) are JavaScript functions that run on item create/update/delete operations.	azure,cosmosdb,triggers
+
+What is a User-Defined Function (UDF) in Cosmos DB?	A UDF is JavaScript code used within queries to extend query functionality with custom logic, such as complex calculations or transformations.	azure,cosmosdb,udf
+
+What is multi-region replication in Cosmos DB?	Multi-region replication automatically replicates data to multiple Azure regions for high availability, low latency access, and disaster recovery.	azure,cosmosdb,replication
+
+What are multi-region write capabilities?	Multi-region writes allow applications to write to any region, with automatic conflict resolution. Enables active-active scenarios for global applications.	azure,cosmosdb,replication
+
+A global application needs low-latency reads and writes from multiple continents. What Cosmos DB configuration is needed?	Enable multi-region distribution with multi-region writes, placing replicas in regions close to users	azure,cosmosdb,use-case,replication
+
+What is the maximum item size in Cosmos DB?	2 MB per item (document)	azure,cosmosdb,limits
+
+What is the maximum logical partition size?	20 GB per logical partition (all items with same partition key)	azure,cosmosdb,limits,partitioning
+
+How does indexing work in Cosmos DB?	By default, Cosmos DB automatically indexes all properties in all items. Indexing policy can be customized to include/exclude paths, improving write performance and reducing RU costs.	azure,cosmosdb,indexing
+
+What is the default indexing mode in Cosmos DB?	Consistent mode - indexes are updated synchronously with writes, ensuring queries immediately reflect changes	azure,cosmosdb,indexing
+
+When should you exclude properties from indexing?	Exclude properties that are never queried or are very large (like binary data) to reduce write RU costs and improve performance	azure,cosmosdb,indexing,best-practices
+
+What types of indexes are available in Cosmos DB?	Range indexes (for equality, range, ORDER BY queries), Spatial indexes (for geospatial queries), and Composite indexes (for multiple property queries)	azure,cosmosdb,indexing
+
+What is a composite index and when is it useful?	A composite index indexes multiple properties together, essential for efficient ORDER BY queries on multiple properties or queries filtering on multiple properties.	azure,cosmosdb,indexing
+
+A query uses ORDER BY on two properties. What indexing optimization is needed?	Create a composite index on those two properties in the order specified in the ORDER BY clause	azure,cosmosdb,use-case,indexing
+
+What is a unique key constraint in Cosmos DB?	A unique key ensures that one or more property values are unique within a logical partition, preventing duplicate entries.	azure,cosmosdb,constraints
+
+Can you change the partition key of an existing container?	No, partition keys are immutable once the container is created. You must migrate data to a new container with a different partition key.	azure,cosmosdb,partitioning
+
+What is the Cosmos DB SQL API query language?	A SQL-like query language that supports SELECT, WHERE, JOIN (within documents), ORDER BY, aggregations, and subqueries for querying JSON documents.	azure,cosmosdb,queries
+
+What is a cross-partition query?	A query that spans multiple partitions because it doesn't filter on the partition key, resulting in higher RU costs and latency	azure,cosmosdb,queries,performance
+
+How can you optimize queries in Cosmos DB?	Include partition key in WHERE clause, use appropriate indexes, limit result sets with TOP, project only needed fields, use composite indexes for multi-property queries.	azure,cosmosdb,queries,best-practices
+
+What is the Azure Cosmos DB capacity planner?	A tool that helps estimate RU/s requirements based on workload characteristics, document size, and operation types	azure,cosmosdb,planning
+
+What are analytical workloads in Cosmos DB?	Analytical workloads use Azure Synapse Link to run analytical queries without impacting transactional workloads, using a columnar store	azure,cosmosdb,analytics
+
+What is Azure Synapse Link for Cosmos DB?	Synapse Link enables near real-time analytics over Cosmos DB data using a cloud-native analytical store (column store), with no ETL required	azure,cosmosdb,synapse-link
+
+A company needs to run complex analytical queries without affecting production performance. What Cosmos DB feature should they use?	Azure Synapse Link - provides analytical store for OLAP queries separate from transactional store (OLTP)	azure,cosmosdb,use-case,analytics
+
+What is the difference between transactional and analytical store?	Transactional store: Row-based, optimized for OLTP (reads/writes). Analytical store: Column-based, optimized for OLAP (aggregations, scans), no RU charges.	azure,cosmosdb,synapse-link
+
+What is conflict resolution in multi-region writes?	Conflict resolution handles concurrent writes to the same item in different regions. Policies: Last Write Wins (default), Custom (using stored procedure), or Manual.	azure,cosmosdb,replication,conflicts
+
+What is Last Write Wins (LWW) conflict resolution?	LWW automatically resolves conflicts by keeping the write with the highest timestamp value, discarding earlier writes	azure,cosmosdb,replication,conflicts
+
+Can you monitor Cosmos DB performance?	Yes, using Azure Monitor metrics (RU consumption, latency, throttling), diagnostic logs, and Application Insights integration	azure,cosmosdb,monitoring
+
+What causes a 429 (Too Many Requests) error in Cosmos DB?	Rate limiting when request units (RU/s) are exceeded for a container or partition. Indicates need for more throughput or query optimization.	azure,cosmosdb,errors,throttling
+
+How should applications handle 429 errors?	Implement exponential backoff retry logic. The SDK includes built-in retry policies that automatically handle 429 errors.	azure,cosmosdb,errors,best-practices
+
+What is the Cosmos DB emulator?	A local emulator for development and testing that mimics Cosmos DB service without Azure costs, supporting all APIs except Cassandra and MongoDB.	azure,cosmosdb,development
+
+Can you migrate data between Cosmos DB accounts?	Yes, using Azure Data Factory, Azure Cosmos DB Migration Tool, Change Feed, or custom applications with bulk operations	azure,cosmosdb,migration
+
+What is bulk executor library in Cosmos DB?	A library that enables efficient bulk import/update/delete operations by batching and parallel processing, significantly improving throughput	azure,cosmosdb,bulk-operations
+
+What is point-in-time restore (PITR) in Cosmos DB?	PITR allows restoring a Cosmos DB account to any point in time within the retention period (up to 30 days), protecting against accidental deletes/updates	azure,cosmosdb,backup
+
+What backup modes are available in Cosmos DB?	1. Continuous backup (PITR enabled, restore to any point), 2. Periodic backup (restore from Azure-managed backups)	azure,cosmosdb,backup
+
+A developer accidentally deletes critical data. How can it be recovered?	If continuous backup is enabled, use point-in-time restore to recover the account to a state before deletion	azure,cosmosdb,use-case,backup
+
+What is hierarchical partition key?	A preview feature allowing up to 3 partition key paths for better data distribution and query optimization, addressing hot partition issues	azure,cosmosdb,partitioning
+
+What is the minimum RU/s for a Cosmos DB container?	400 RU/s for manual throughput, 100 RU/s minimum for autoscale (10% of max)	azure,cosmosdb,throughput
+
+Can you share throughput across multiple containers?	Yes, by provisioning throughput at the database level, containers share the allocated RU/s (useful for many small containers)	azure,cosmosdb,throughput
+
+What is the query optimizer in Cosmos DB?	The query optimizer analyzes queries and automatically selects optimal execution plans, using available indexes to minimize RU consumption	azure,cosmosdb,queries

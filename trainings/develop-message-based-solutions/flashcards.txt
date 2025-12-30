@@ -1,0 +1,167 @@
+# Azure Message-Based Solutions - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What are the main Azure messaging services?	1. Azure Service Bus (enterprise messaging), 2. Azure Queue Storage (simple queuing), 3. Azure Storage Queues (basic queuing)	azure,messaging,basics
+
+What is Azure Service Bus?	A fully managed enterprise message broker with message queues and publish-subscribe topics supporting transactions, ordering, and duplicate detection	azure,messaging,service-bus,basics
+
+What is Azure Queue Storage?	A simple, cost-effective queuing service for storing large numbers of messages, accessed via HTTP/HTTPS	azure,messaging,queue-storage,basics
+
+What is the difference between Service Bus and Queue Storage?	Service Bus: enterprise features (transactions, ordering, sessions, TTL). Queue Storage: simple, cost-effective, large messages (up to 64 KB).	azure,messaging,comparison
+
+When should you use Service Bus vs Queue Storage?	Service Bus: guaranteed ordering, transactions, advanced routing, duplicate detection. Queue Storage: simple async messaging, cost-sensitive, large volume.	azure,messaging,comparison
+
+What is a Service Bus queue?	A FIFO message container supporting one or more competing consumers	azure,messaging,service-bus,queue
+
+What is a Service Bus topic?	A publish-subscribe messaging resource allowing multiple independent subscriptions with filtering	azure,messaging,service-bus,topic
+
+What is the difference between Service Bus queues and topics?	Queues: one message to one consumer (point-to-point). Topics: one message to multiple subscribers (pub/sub).	azure,messaging,service-bus,comparison
+
+A system needs to send order notifications to three different processors (inventory, shipping, billing). What Service Bus feature is ideal?	Service Bus topic with three subscriptions - each processor gets a copy of every message	azure,messaging,use-case,service-bus
+
+What is a Service Bus namespace?	A container for messaging resources (queues, topics), providing a unique FQDN	azure,messaging,service-bus,namespace
+
+What Service Bus pricing tiers are available?	1. Basic (queues only), 2. Standard (queues and topics), 3. Premium (dedicated resources, VNet, larger messages)	azure,messaging,service-bus,tiers
+
+What is the maximum message size in Standard tier?	256 KB per message	azure,messaging,service-bus,limits
+
+What is the maximum message size in Premium tier?	100 MB per message (significantly larger than Standard)	azure,messaging,service-bus,limits,premium
+
+What is message Time-to-Live (TTL)?	Duration a message remains in queue/topic before expiring and moving to dead-letter queue	azure,messaging,service-bus,ttl
+
+What is the default TTL for Service Bus messages?	TimeSpan.MaxValue (effectively unlimited) unless specified	azure,messaging,service-bus,ttl
+
+What is the dead-letter queue (DLQ)?	A sub-queue storing messages that cannot be processed (expired, max delivery count exceeded, processing errors)	azure,messaging,service-bus,dlq
+
+When are messages moved to dead-letter queue?	After exceeding max delivery count, TTL expiration, or explicit dead-lettering in processing logic	azure,messaging,service-bus,dlq
+
+A message processing fails repeatedly. How can it be isolated for investigation?	Messages automatically move to DLQ after exceeding max delivery count, can be retrieved for analysis	azure,messaging,use-case,service-bus
+
+What is message lock duration?	Time a message is locked for processing before becoming available to other receivers (if not completed)	azure,messaging,service-bus,lock
+
+What is the default lock duration?	60 seconds (configurable up to 5 minutes)	azure,messaging,service-bus,lock
+
+What happens if a message isn't completed before lock expires?	Message becomes available for other receivers to process, delivery count increments	azure,messaging,service-bus,lock
+
+What is Peek-Lock receive mode?	Receiver locks message during processing, must explicitly complete or abandon - ensures reliable processing	azure,messaging,service-bus,receive-mode
+
+What is Receive-and-Delete mode?	Message is immediately removed when received - faster but less reliable, no retry on failure	azure,messaging,service-bus,receive-mode
+
+Which receive mode should be used for critical messages?	Peek-Lock mode - provides message durability and retry capability on failures	azure,messaging,service-bus,best-practices
+
+What is message sessions in Service Bus?	FIFO guarantee and state management for related messages using session ID	azure,messaging,service-bus,sessions
+
+When should you use message sessions?	When ordering must be guaranteed for related messages (e.g., all messages from same customer processed in order)	azure,messaging,service-bus,sessions,use-case
+
+What is duplicate detection in Service Bus?	Automatic detection and removal of duplicate messages based on message ID within a time window	azure,messaging,service-bus,duplicate-detection
+
+What is the duplicate detection window?	Time period (up to 7 days) during which duplicate messages are detected and discarded	azure,messaging,service-bus,duplicate-detection
+
+What is message deferral?	Marking a message for later retrieval, removing it from active processing while keeping it in queue	azure,messaging,service-bus,deferral
+
+When should you defer messages?	When message cannot be processed now due to dependencies, defer until prerequisites are met	azure,messaging,service-bus,deferral,use-case
+
+What are subscription filters in Service Bus?	Rules that determine which messages from a topic are delivered to a subscription	azure,messaging,service-bus,filters
+
+What types of subscription filters are available?	1. Boolean filters (all or none), 2. SQL filters (property-based), 3. Correlation filters (fast, property matching)	azure,messaging,service-bus,filters
+
+What is a SQL filter?	Filter expression using SQL-like syntax to evaluate message properties (e.g., Color='Red' AND Price > 100)	azure,messaging,service-bus,filters,sql
+
+What is a correlation filter?	Efficient filter matching message properties without SQL evaluation, best performance	azure,messaging,service-bus,filters,correlation
+
+An order processing system needs high-priority orders in one subscription. How to implement?	Create topic subscription with SQL filter: Priority='High'	azure,messaging,use-case,service-bus
+
+What is message batching in Service Bus?	Sending multiple messages in a single operation, reducing network overhead and improving throughput	azure,messaging,service-bus,batching
+
+What is transaction support in Service Bus?	Atomic operations across multiple messages (send, receive, complete) within a transaction scope	azure,messaging,service-bus,transactions
+
+Can you send to multiple queues in one transaction?	No, Service Bus transactions are scoped to a single entity (queue or topic)	azure,messaging,service-bus,transactions
+
+What is scheduled delivery in Service Bus?	Enqueuing messages with future availability time, delivered only after specified time	azure,messaging,service-bus,scheduled
+
+What is message auto-forwarding?	Automatically forwarding messages from one queue/subscription to another queue/topic	azure,messaging,service-bus,auto-forward
+
+When should you use auto-forwarding?	For chaining processing stages, partitioning logic, or routing messages through multiple processing steps	azure,messaging,service-bus,auto-forward,use-case
+
+What authentication methods does Service Bus support?	1. Shared Access Signature (SAS), 2. Azure AD authentication with Managed Identity (recommended)	azure,messaging,service-bus,authentication
+
+What is the recommended authentication for Service Bus?	Azure AD with Managed Identity - no connection strings to manage, better security	azure,messaging,service-bus,authentication,best-practices
+
+What is partitioning in Service Bus?	Dividing a queue/topic across multiple message brokers for higher throughput and availability	azure,messaging,service-bus,partitioning
+
+Can partitioning be enabled on existing queues?	No, partitioning must be enabled at creation time, cannot be changed later	azure,messaging,service-bus,partitioning
+
+What is the advantage of Premium Service Bus tier?	Dedicated messaging units, predictable performance, no noisy neighbors, VNet integration, larger messages	azure,messaging,service-bus,premium
+
+What is a messaging unit in Premium tier?	Dedicated CPU and memory resources for Service Bus, can scale from 1-16 units	azure,messaging,service-bus,premium
+
+What is VNet integration in Service Bus Premium?	Connecting Service Bus to virtual network with service endpoints or private endpoints for secure access	azure,messaging,service-bus,networking
+
+What is Queue Storage message size limit?	64 KB per message	azure,messaging,queue-storage,limits
+
+What is the maximum queue message count?	Unlimited (limited by storage account capacity, 500 TB)	azure,messaging,queue-storage,limits
+
+What is message visibility timeout in Queue Storage?	Duration a message is invisible to other consumers after being retrieved, default 30 seconds	azure,messaging,queue-storage,visibility
+
+What happens if message isn't deleted before visibility timeout?	Message becomes visible again for other consumers to process	azure,messaging,queue-storage,visibility
+
+How do you update visibility timeout while processing?	Call UpdateMessage to extend visibility timeout, keeping message locked during long processing	azure,messaging,queue-storage
+
+What is the maximum visibility timeout?	7 days	azure,messaging,queue-storage,limits
+
+What is message TTL in Queue Storage?	Time a message remains in queue before automatic deletion (default: 7 days, max: unlimited with -1)	azure,messaging,queue-storage,ttl
+
+What operations are available for Queue Storage?	Put (enqueue), Get (dequeue with visibility lock), Peek (read without lock), Delete, Update, Clear	azure,messaging,queue-storage,operations
+
+Can Queue Storage messages be peeked without locking?	Yes, Peek operation reads messages without changing visibility, useful for monitoring	azure,messaging,queue-storage,peek
+
+What is the recommended pattern for reliable Queue Storage processing?	Get message → Process → Delete message (if successful) → Extend visibility timeout if needed	azure,messaging,queue-storage,best-practices
+
+What SDKs are available for Service Bus?	.NET, Java, Python, JavaScript, C, Go	azure,messaging,service-bus,sdk
+
+What SDKs are available for Queue Storage?	Azure Storage SDKs for .NET, Java, Python, JavaScript, Go, C++	azure,messaging,queue-storage,sdk
+
+What is poison message handling?	Detecting and handling messages that repeatedly fail processing, moving them to DLQ or separate queue	azure,messaging,poison-message
+
+How does Service Bus handle poison messages?	Automatically moves to DLQ after exceeding max delivery count (default: 10)	azure,messaging,service-bus,poison-message
+
+How should applications handle poison messages in Queue Storage?	Check dequeue count, move to poison queue after threshold (implement manually, no built-in DLQ)	azure,messaging,queue-storage,poison-message
+
+What is message correlation?	Linking related messages using correlation ID, session ID, or custom properties	azure,messaging,correlation
+
+What is idempotency in message processing?	Processing the same message multiple times produces the same result, essential for reliable systems	azure,messaging,best-practices
+
+Why is idempotency important?	Messages may be delivered multiple times (at-least-once delivery), processing must handle duplicates safely	azure,messaging,best-practices
+
+What is the compete consumer pattern?	Multiple consumers processing from same queue, each message delivered to one consumer	azure,messaging,pattern
+
+What is the publish-subscribe pattern?	One message published to topic, delivered to multiple subscribers based on subscriptions	azure,messaging,pattern
+
+A notification service sends alerts via email, SMS, and push. What messaging pattern fits?	Publish-subscribe with Service Bus topic - one message published, three subscriptions for each channel	azure,messaging,use-case,pattern
+
+What is message ordering guarantee in Service Bus?	FIFO order guaranteed when using sessions, best-effort ordering without sessions	azure,messaging,service-bus,ordering
+
+What is message ordering in Queue Storage?	Best-effort approximate FIFO, no strict ordering guarantee	azure,messaging,queue-storage,ordering
+
+When is strict message ordering required?	Order processing, financial transactions, sequential workflows where order matters	azure,messaging,ordering,use-case
+
+What is geo-disaster recovery in Service Bus Premium?	Metadata replication to paired region, enabling failover if primary region fails	azure,messaging,service-bus,dr
+
+What is replicated in Service Bus geo-DR?	Namespace metadata (queues, topics, configurations), not message content	azure,messaging,service-bus,dr
+
+What monitoring is available for Service Bus?	Metrics (active messages, dead-letter count, throughput), diagnostic logs, alerts, Azure Monitor integration	azure,messaging,service-bus,monitoring
+
+What monitoring is available for Queue Storage?	Storage metrics (queue count, message count, queue requests), diagnostic logs	azure,messaging,queue-storage,monitoring
+
+What is the maximum number of subscriptions per topic?	2,000 subscriptions per topic in Standard tier	azure,messaging,service-bus,limits
+
+Can Service Bus integrate with Event Grid?	Yes, Service Bus can publish events to Event Grid when messages arrive, enabling reactive patterns	azure,messaging,service-bus,integration
+
+What is message enrichment in Service Bus?	Adding or modifying message properties as messages flow through subscriptions using filters and actions	azure,messaging,service-bus,enrichment
+
+What is the recommended retry policy for Service Bus?	Exponential backoff with jitter to handle transient failures without overwhelming service	azure,messaging,service-bus,best-practices
+
+What is prefetch in Service Bus?	Receiving multiple messages in one network round trip, improving throughput for high-volume scenarios	azure,messaging,service-bus,prefetch
+
+What is the rule action in Service Bus subscriptions?	Action that modifies message properties when filter matches, used for message enrichment	azure,messaging,service-bus,rules

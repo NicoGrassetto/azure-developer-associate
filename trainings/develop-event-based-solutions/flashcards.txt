@@ -1,0 +1,155 @@
+# Azure Event-Based Solutions - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What are the main Azure event services?	1. Azure Event Grid (discrete events), 2. Azure Event Hubs (event streaming), 3. Azure Service Bus (enterprise messaging with transactions)	azure,events,basics
+
+What is Azure Event Grid?	A fully managed event routing service enabling reactive programming with pub/sub model for discrete events	azure,events,event-grid,basics
+
+What is Azure Event Hubs?	A big data streaming platform and event ingestion service capable of receiving and processing millions of events per second	azure,events,event-hubs,basics
+
+What is the difference between Event Grid and Event Hubs?	Event Grid: reactive discrete events, pub/sub, lightweight. Event Hubs: high-throughput streaming, ordered events, retention.	azure,events,comparison
+
+When should you use Event Grid vs Event Hubs?	Event Grid: React to state changes, discrete events, fan-out. Event Hubs: Telemetry, logs, event streaming, time-series data.	azure,events,comparison
+
+What is an event in Event Grid?	A lightweight notification of something that happened, containing metadata about the occurrence (who, what, when, where)	azure,events,event-grid,event
+
+What is the maximum event size in Event Grid?	1 MB per event (or 64 KB per event in a batch)	azure,events,event-grid,limits
+
+What event sources are supported by Event Grid?	Azure subscriptions, Resource Groups, Storage Accounts, Event Hubs, Service Bus, Azure Maps, App Configuration, custom topics	azure,events,event-grid,sources
+
+What event handlers does Event Grid support?	Azure Functions, Logic Apps, Event Hubs, Service Bus, Webhooks, Hybrid Connections, Storage Queues	azure,events,event-grid,handlers
+
+A blob is uploaded to storage and should trigger processing. What Azure service combination is ideal?	Azure Blob Storage (source) → Event Grid → Azure Function (handler) for reactive, scalable processing	azure,events,use-case,event-grid
+
+What is an Event Grid topic?	An endpoint where events are sent, can be system topics (Azure resources) or custom topics (application events)	azure,events,event-grid,topic
+
+What is a system topic in Event Grid?	Built-in topics for Azure services (Storage, Resource Groups) that automatically publish events	azure,events,event-grid,system-topic
+
+What is a custom topic in Event Grid?	User-created topic for publishing application or third-party events	azure,events,event-grid,custom-topic
+
+What is an event subscription in Event Grid?	Configuration specifying which events from a topic should be delivered to which handler, with optional filtering	azure,events,event-grid,subscription
+
+What filtering options are available for Event Grid subscriptions?	Subject filtering (prefix/suffix), advanced filtering (event properties), event type filtering	azure,events,event-grid,filtering
+
+What is Event Grid retry policy?	Automatic retry of event delivery with exponential backoff, up to 24 hours or maximum retry attempts	azure,events,event-grid,retry
+
+What happens to events that cannot be delivered after all retries?	Events are sent to a dead-letter destination (if configured) or dropped	azure,events,event-grid,dead-letter
+
+What is dead-lettering in Event Grid?	Storing undeliverable events in a storage blob container for later investigation and reprocessing	azure,events,event-grid,dead-letter
+
+What is event delivery guarantee in Event Grid?	At-least-once delivery - events may be delivered multiple times, handlers must be idempotent	azure,events,event-grid,delivery
+
+A webhook endpoint is unreliable. How can event loss be prevented?	Configure dead-letter destination to capture failed events for later reprocessing	azure,events,event-grid,use-case
+
+What is CloudEvents schema?	A standardized event format for describing events in a common way across platforms	azure,events,event-grid,schema
+
+What event schemas does Event Grid support?	1. Event Grid schema (Azure default), 2. CloudEvents v1.0 schema, 3. Custom schema	azure,events,event-grid,schema
+
+What is an Event Grid domain?	A management resource for grouping multiple topics under a single endpoint, simplifying large-scale event routing	azure,events,event-grid,domain
+
+What authentication does Event Grid use for publishing?	SAS token or Azure AD authentication with managed identity	azure,events,event-grid,authentication
+
+What is Event Hubs namespace?	A management container for one or more event hubs (similar to Service Bus namespace)	azure,events,event-hubs,namespace
+
+What is an event hub?	An event streaming endpoint within a namespace, similar to a Kafka topic	azure,events,event-hubs
+
+What is a partition in Event Hubs?	An ordered sequence of events within an event hub, enabling parallel processing and ordering guarantees	azure,events,event-hubs,partition
+
+How many partitions should an event hub have?	Based on parallel consumers needed - common range is 2-32 partitions, cannot be changed after creation	azure,events,event-hubs,partition
+
+What is a partition key in Event Hubs?	A value used to map events to specific partitions, ensuring related events go to the same partition for ordering	azure,events,event-hubs,partition-key
+
+What happens if no partition key is provided?	Events are distributed in round-robin fashion across partitions	azure,events,event-hubs,partition-key
+
+A telemetry system must maintain order of events per device. How should events be published?	Use device ID as partition key - events from same device go to same partition maintaining order	azure,events,use-case,event-hubs
+
+What is event retention in Event Hubs?	Duration that events are stored (1-90 days in Standard tier, 90 days in Premium/Dedicated)	azure,events,event-hubs,retention
+
+What is a consumer group in Event Hubs?	A view of the event hub allowing multiple consuming applications to read the stream independently with separate offsets	azure,events,event-hubs,consumer-group
+
+How many consumer groups can an event hub have?	Up to 20 consumer groups in Standard tier (more in Premium/Dedicated)	azure,events,event-hubs,limits
+
+What is a checkpoint in Event Hubs?	A marker recording the last successfully processed event position, enabling resume after failure	azure,events,event-hubs,checkpoint
+
+Where are checkpoints stored?	In Azure Storage (Blob Storage) by consuming applications	azure,events,event-hubs,checkpoint
+
+What is Event Hubs Capture?	Automatic capture of streaming data to Azure Blob Storage or Data Lake Storage for batch processing and analytics	azure,events,event-hubs,capture
+
+What formats does Event Hubs Capture support?	Avro format (compact, self-describing schema)	azure,events,event-hubs,capture
+
+What Event Hubs tiers are available?	1. Basic (1 consumer group), 2. Standard (20 consumer groups), 3. Premium (SSD storage, VNet), 4. Dedicated (single-tenant)	azure,events,event-hubs,tiers
+
+What is a throughput unit (TU) in Event Hubs?	Pre-purchased capacity unit: 1 MB/s ingress or 2 MB/s egress, up to 1000 events per second	azure,events,event-hubs,throughput
+
+What is Auto-inflate in Event Hubs?	Automatic scaling of throughput units based on demand, up to a configured maximum	azure,events,event-hubs,scaling
+
+A streaming application ingests 5 GB per hour. How many throughput units are needed?	Minimum 2 TUs (5 GB/hour ≈ 1.4 MB/s ingress, each TU provides 1 MB/s)	azure,events,use-case,event-hubs
+
+What is the difference between Event Hubs and Kafka?	Event Hubs is Azure-native with Kafka protocol support, allowing Kafka clients to use Event Hubs as Kafka cluster	azure,events,event-hubs,kafka
+
+Can Kafka clients connect to Event Hubs?	Yes, Event Hubs supports Kafka protocol, enabling Kafka producers/consumers to connect without code changes	azure,events,event-hubs,kafka
+
+What is Event Hubs Schema Registry?	Central repository for event schemas enabling schema evolution and validation	azure,events,event-hubs,schema
+
+What is the maximum event size in Event Hubs?	1 MB per event	azure,events,event-hubs,limits
+
+What is batching in Event Hubs?	Sending multiple events together to improve throughput and reduce overhead	azure,events,event-hubs,batching
+
+What is the AMQP protocol used with Event Hubs?	Advanced Message Queuing Protocol - efficient binary protocol for high-throughput messaging	azure,events,event-hubs,amqp
+
+What protocols does Event Hubs support?	AMQP 1.0 (recommended), HTTPS, Kafka protocol	azure,events,event-hubs,protocols
+
+What is Event Hubs Premium tier advantage?	Dedicated processing power, CPU isolation, 100 MB/s per PU (Processing Unit), VNet integration	azure,events,event-hubs,premium
+
+What is Event Hubs Dedicated tier?	Single-tenant deployment with dedicated capacity, full control, no noisy neighbor issues	azure,events,event-hubs,dedicated
+
+What is offset in Event Hubs?	Sequential position of an event within a partition, used for tracking progress and seeking	azure,events,event-hubs,offset
+
+Can you read events from a specific point in time?	Yes, using enqueue time or sequence number to seek to specific position in partition	azure,events,event-hubs,offset
+
+What is the Event Processor Host (EPH)?	Legacy library for reading events with automatic load balancing and checkpointing (replaced by Event Hubs SDK v5)	azure,events,event-hubs,eph
+
+What replaced Event Processor Host?	EventProcessorClient in Azure Event Hubs SDK v5 with improved performance and simpler API	azure,events,event-hubs,sdk
+
+What is geo-disaster recovery in Event Hubs?	Metadata replication to secondary namespace, enabling failover if primary region fails	azure,events,event-hubs,dr
+
+What is replicated in geo-disaster recovery?	Namespace metadata (event hubs, consumer groups, configuration), not event data	azure,events,event-hubs,dr
+
+What is Event Grid event delivery security?	Webhook validation, Azure AD authentication, SAS tokens, private endpoints	azure,events,event-grid,security
+
+What is webhook validation in Event Grid?	Handshake process where Event Grid validates webhook endpoint before delivering events	azure,events,event-grid,webhook
+
+What are the two webhook validation methods?	1. Synchronous (validation code in response), 2. Asynchronous (validation URL)	azure,events,event-grid,webhook
+
+What is event filtering efficiency?	Event Grid filters at source before delivery, reducing bandwidth and processing costs	azure,events,event-grid,filtering
+
+An application needs only "blob created" events. Where should filtering occur?	In Event Grid subscription using event type filter - events are filtered before delivery	azure,events,use-case,event-grid
+
+What is the push model in Event Grid?	Event Grid pushes events to handlers immediately when they occur, minimizing latency	azure,events,event-grid,push
+
+What is the pull model in Event Hubs?	Consumers pull events from Event Hubs at their own pace, controlling throughput	azure,events,event-hubs,pull
+
+What monitoring is available for Event Grid?	Metrics (delivery success, latency, dropped events), diagnostic logs, alerts	azure,events,event-grid,monitoring
+
+What monitoring is available for Event Hubs?	Metrics (incoming/outgoing messages, throttling, capture), diagnostic logs, alerts	azure,events,event-hubs,monitoring
+
+What is the maximum retention period for Event Hubs?	90 days (Standard/Premium tiers)	azure,events,event-hubs,retention
+
+Can Event Hubs integrate with Azure Stream Analytics?	Yes, Event Hubs is a primary input source for Stream Analytics real-time analytics	azure,events,event-hubs,integration
+
+What is throughput isolation in Event Hubs Premium?	Each Processing Unit provides dedicated CPU and memory, preventing noisy neighbor issues	azure,events,event-hubs,premium
+
+What is Event Grid's pricing model?	Pay per operation (publish, delivery attempt), first 100K operations per month free	azure,events,event-grid,pricing
+
+What is Event Hubs' pricing model?	Based on tier and throughput units/processing units, plus ingress data charges	azure,events,event-hubs,pricing
+
+A system needs to archive all events for compliance. What Event Hubs feature enables this?	Event Hubs Capture - automatically archives events to storage without custom code	azure,events,use-case,event-hubs
+
+What is the recommended pattern for reactive serverless processing?	Event Grid → Azure Functions - lightweight, automatic scaling, cost-effective	azure,events,pattern
+
+What is the recommended pattern for high-throughput streaming?	Event Hubs → Stream Analytics or Azure Functions - process millions of events	azure,events,pattern
+
+What is idempotency and why is it important?	Processing the same event multiple times produces the same result - critical for at-least-once delivery	azure,events,best-practices
+
+What is Event Grid namespace (preview)?	New Event Grid resource supporting MQTT, HTTP push/pull, and CloudEvents	azure,events,event-grid,namespace

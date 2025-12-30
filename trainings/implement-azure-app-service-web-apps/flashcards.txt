@@ -1,0 +1,103 @@
+# Azure App Service Web Apps - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure App Service?	Azure App Service is an HTTP-based PaaS service for hosting web applications, REST APIs, and mobile backends with built-in auto-scaling, CI/CD, and deployment slots.	azure,app-service,basics
+
+What are the Azure App Service pricing tiers in order from lowest to highest?	Free/Shared → Basic → Standard → Premium → Isolated	azure,app-service,pricing
+
+Which App Service pricing tier is required for deployment slots?	Standard tier or higher	azure,app-service,deployment-slots
+
+What is the difference between Scale Up and Scale Out in Azure App Service?	Scale Up (vertical scaling): Change VM size for more CPU/RAM. Scale Out (horizontal scaling): Increase the number of instances.	azure,app-service,scaling
+
+What are deployment slots used for in Azure App Service?	Deployment slots enable zero-downtime deployments by allowing you to deploy to a staging slot, test it, and then swap it with production without downtime.	azure,app-service,deployment-slots
+
+A company needs to deploy a web application with staging and production environments. What minimum App Service tier should they use?	Standard tier (deployment slots require Standard tier or higher)	azure,app-service,use-case
+
+What happens during a deployment slot swap?	The slot swap exchanges the hostnames between two slots (e.g., staging and production), moving the new version to production and the old version to staging. Configuration and warm-up happen automatically.	azure,app-service,deployment-slots
+
+What are "sticky" slot settings?	Slot settings that stay with the slot during a swap rather than moving with the app. These include app settings marked as slot settings, connection strings, handler mappings, and public certificates.	azure,app-service,deployment-slots
+
+List 5 deployment methods supported by Azure App Service.	1. Azure DevOps, 2. GitHub Actions, 3. Local Git, 4. FTP/FTPS, 5. ZIP Deploy, 6. Container (ACR/Docker Hub)	azure,app-service,deployment
+
+What authentication providers are supported by App Service Easy Auth?	Microsoft Entra ID (Azure AD), Facebook, Google, Twitter, and Custom OpenID Connect providers	azure,app-service,authentication
+
+What is an App Service Plan?	An App Service Plan is the compute resources container for web apps. It defines the region, number of VM instances, size of instances, and pricing tier. All apps in the same plan share the same compute resources.	azure,app-service,basics
+
+Which scaling triggers can be used for auto-scaling in App Service?	CPU percentage, Memory usage, HTTP queue length, and Custom metrics	azure,app-service,scaling
+
+A web application experiences high traffic during business hours (9 AM - 5 PM) and low traffic at night. What Azure App Service feature should be used?	Auto-scaling with schedule-based rules to scale out during business hours and scale in during off-hours	azure,app-service,use-case,scaling
+
+What networking feature allows App Service to securely access resources in a Virtual Network?	VNet Integration (for outbound connections from App Service to VNet resources)	azure,app-service,networking
+
+What networking feature allows clients to access App Service through a private IP address?	Private Endpoints (for inbound connections to App Service from private networks)	azure,app-service,networking
+
+What is the purpose of Access Restrictions in App Service?	Access Restrictions control which IP addresses or Virtual Networks can access your App Service, providing network-level security for inbound traffic.	azure,app-service,networking,security
+
+What is Application Insights used for in App Service?	Application Insights provides application performance monitoring (APM), telemetry collection, diagnostics, and analytics for monitoring web app performance and usage.	azure,app-service,monitoring
+
+What types of diagnostic logs are available in App Service?	Application logging, Web server logging, Detailed error messages, Deployment logging, and Failed request tracing	azure,app-service,monitoring
+
+A company wants to route 10% of production traffic to a new version for testing before full rollout. What App Service feature enables this?	Deployment slots with traffic routing/splitting functionality	azure,app-service,use-case,deployment-slots
+
+What is the difference between the Free/Shared tier and Basic tier in App Service?	Free/Shared tiers use shared VMs with no scale-out capability, while Basic tier provides dedicated VMs with manual scaling options.	azure,app-service,pricing
+
+When should you use the Premium App Service tier over Standard?	Use Premium when you need: pre-warmed instances, VNet integration, more powerful VMs, or enhanced performance and scale capabilities.	azure,app-service,pricing
+
+When should you use the Isolated App Service tier?	Use Isolated tier when you need maximum isolation and security with dedicated VNets (App Service Environment), or for regulatory compliance requiring network isolation.	azure,app-service,pricing
+
+What is App Service Environment (ASE)?	App Service Environment is a fully isolated and dedicated environment for securely running App Service apps at high scale within a Virtual Network.	azure,app-service,networking
+
+How do you store secrets securely for an App Service application?	Store secrets in Azure Key Vault and access them using Managed Identity. Reference Key Vault secrets in App Service configuration using Key Vault references.	azure,app-service,security,best-practices
+
+What is a Managed Identity in the context of App Service?	A Managed Identity is an automatically managed identity in Microsoft Entra ID that allows App Service to authenticate to Azure services (like Key Vault, Storage, SQL) without storing credentials in code.	azure,app-service,security
+
+A developer needs to test database migrations on a staging environment before applying to production. What App Service features should be used?	Use deployment slots (staging and production) with slot-specific connection strings that stay with each slot during swaps.	azure,app-service,use-case,deployment-slots
+
+What is the maximum number of instances for auto-scaling in the Free tier?	Free tier does not support auto-scaling or manual scale-out (limited to 1 shared instance).	azure,app-service,scaling
+
+What is "warm-up" in the context of deployment slots?	Warm-up is the process where App Service makes HTTP requests to the application root after swapping configuration but before routing production traffic, ensuring the app is ready to serve requests.	azure,app-service,deployment-slots
+
+How can you implement continuous deployment with GitHub in App Service?	Configure GitHub Actions or use the Deployment Center in Azure Portal to connect your GitHub repository. App Service can automatically build and deploy on each push to the specified branch.	azure,app-service,deployment,cicd
+
+What is ZIP Deploy in App Service?	ZIP Deploy is a deployment method that uploads a .zip file containing your application code to App Service using the Kudu REST API. It's fast and doesn't require build steps.	azure,app-service,deployment
+
+A web app suddenly experiences high CPU usage. What App Service monitoring feature should be configured?	Configure Azure Alerts based on CPU percentage metrics to receive proactive notifications, and use Application Insights for detailed performance analysis.	azure,app-service,use-case,monitoring
+
+What are the two types of Managed Identities available for App Service?	System-assigned (lifecycle tied to the App Service resource) and User-assigned (independent identity that can be shared across multiple resources)	azure,app-service,security
+
+Can you run Windows and Linux apps in the same App Service Plan?	No. Windows and Linux apps must be in separate App Service Plans as they require different compute resources.	azure,app-service,basics
+
+What is the purpose of health checks in App Service?	Health checks monitor the health of App Service instances by pinging a specified endpoint. Unhealthy instances are removed from rotation and replaced to ensure application availability.	azure,app-service,monitoring
+
+How long does App Service retain soft-deleted resources?	Soft-deleted resources are retained based on the retention policy, typically allowing recovery within a specific timeframe before permanent deletion.	azure,app-service,basics
+
+What file types are commonly used for App Service configuration?	appsettings.json (for .NET), environment variables, web.config, and Azure App Configuration service	azure,app-service,configuration
+
+A startup needs to host a simple web app with minimal cost. Which App Service tier is most appropriate?	Free or Shared tier for minimal cost, but Basic tier is recommended for production workloads due to dedicated resources.	azure,app-service,use-case,pricing
+
+What is the difference between app settings and connection strings in App Service?	Both become environment variables, but connection strings are formatted specifically for database connections and have type designations (SQL, MySQL, etc.). App settings are general key-value pairs.	azure,app-service,configuration
+
+How does App Service handle HTTPS and SSL/TLS certificates?	App Service provides free managed certificates for custom domains, supports uploading custom certificates, and can bind certificates from Azure Key Vault using Managed Identity.	azure,app-service,security
+
+What is Kudu in Azure App Service?	Kudu is the engine behind Git deployments and provides advanced deployment features, console access, debugging, and diagnostic information for App Service.	azure,app-service,deployment
+
+An application requires access to an on-premises database. What App Service networking feature enables this?	Hybrid Connections allow App Service to securely access on-premises resources without requiring VPN or public IP exposure.	azure,app-service,use-case,networking
+
+What happens to application settings during a deployment slot swap by default?	Most application settings are swapped with the slot unless specifically marked as "deployment slot settings" (sticky settings) that remain with the slot.	azure,app-service,deployment-slots
+
+What is the recommended way to configure different database connections for staging and production slots?	Mark connection strings as "slot settings" (sticky) so each slot retains its own database connection string during swaps.	azure,app-service,deployment-slots,best-practices
+
+How can you minimize cold start times in App Service?	Use Premium tier with always-on instances, implement health check endpoints, configure application initialization, and optimize application startup code.	azure,app-service,performance
+
+What is the "Always On" setting in App Service?	Always On keeps the app loaded even when there's no traffic, preventing the app from being unloaded due to inactivity. This reduces cold start times but is only available in Basic tier and above.	azure,app-service,configuration
+
+A company must comply with regulations requiring network isolation. Which App Service option should they choose?	App Service Environment (ASE) in the Isolated tier, which provides complete network isolation in a dedicated Virtual Network.	azure,app-service,use-case,security
+
+What is the purpose of the SCM (Kudu) site in App Service?	The SCM site provides access to deployment tools, logs, console access, and diagnostic information. It's accessible at https://<app-name>.scm.azurewebsites.net	azure,app-service,deployment
+
+How can you configure an App Service to only accept HTTPS traffic?	Enable the "HTTPS Only" setting in the App Service configuration, which automatically redirects all HTTP requests to HTTPS.	azure,app-service,security
+
+What is application initialization in App Service?	Application initialization allows you to specify custom initialization actions that must complete before the site receives traffic, ensuring the app is fully warmed up.	azure,app-service,configuration
+
+Can App Service automatically scale based on time of day?	Yes, using schedule-based auto-scale rules that define different instance counts for specific time periods (e.g., weekdays vs weekends).	azure,app-service,scaling

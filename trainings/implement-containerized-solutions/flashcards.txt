@@ -1,0 +1,123 @@
+# Azure Containerized Solutions - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What are the main Azure container services?	1. Azure Container Registry (ACR) - store images, 2. Azure Container Instances (ACI) - run containers, 3. Azure Container Apps - microservices platform, 4. Azure Kubernetes Service (AKS) - managed Kubernetes	azure,containers,basics
+
+What is Azure Container Registry (ACR)?	ACR is a managed Docker registry service for storing and managing container images and artifacts in Azure. It supports private container image storage with geo-replication.	azure,containers,acr
+
+What ACR service tiers are available?	1. Basic (cost-effective, dev/test), 2. Standard (production, more storage), 3. Premium (geo-replication, VNet, high throughput)	azure,containers,acr
+
+When should you use Premium ACR tier?	Use Premium for: geo-replication across regions, VNet integration, higher storage/throughput, or content trust signing requirements	azure,containers,acr,premium
+
+What is Azure Container Instances (ACI)?	ACI is the fastest and simplest way to run containers in Azure without managing servers. It provides per-second billing and is ideal for simple applications and batch jobs.	azure,containers,aci
+
+What is Azure Container Apps?	Azure Container Apps is a fully managed serverless container platform for running microservices and containerized applications with built-in autoscaling, HTTPS ingress, and integrated logging.	azure,containers,container-apps
+
+When should you use ACI vs Container Apps vs AKS?	ACI: Simple containers, batch jobs, burst scenarios. Container Apps: Microservices, event-driven apps, HTTP apps. AKS: Full Kubernetes control, complex orchestration, existing K8s workloads.	azure,containers,comparison
+
+A company needs to store private Docker images securely. What Azure service should they use?	Azure Container Registry (ACR) - provides private, secure container image storage with authentication and access control	azure,containers,use-case,acr
+
+How can you authenticate to Azure Container Registry?	1. Azure AD authentication (Managed Identity, Service Principal), 2. Admin account (username/password), 3. Individual AD identities, 4. ACR tokens	azure,containers,acr,authentication
+
+What is geo-replication in ACR?	Geo-replication allows you to replicate container images across multiple Azure regions, providing low-latency local access and high availability.	azure,containers,acr,geo-replication
+
+Can you run Windows containers in ACI?	Yes, ACI supports both Linux and Windows containers	azure,containers,aci
+
+What is a container group in ACI?	A container group is a collection of containers that are scheduled on the same host machine, sharing lifecycle, local network, storage volumes, and resources. Similar to a Kubernetes pod.	azure,containers,aci
+
+A batch processing job needs to run containers on-demand and complete within minutes. What Azure service is most cost-effective?	Azure Container Instances (ACI) - per-second billing, fast startup, no infrastructure management, ideal for short-lived workloads	azure,containers,use-case,aci
+
+How do you expose an ACI container to the internet?	Configure a public IP address and DNS name label during container creation, or use Azure Application Gateway/Load Balancer for more advanced scenarios	azure,containers,aci,networking
+
+What networking modes are available in ACI?	1. Public (public IP address), 2. Private (VNet integration for private networking)	azure,containers,aci,networking
+
+What is the maximum number of CPUs and memory per container group in ACI?	Maximum of 4 CPUs and 16 GB memory per container group (may vary by region)	azure,containers,aci,limits
+
+Can ACI automatically restart failed containers?	Yes, using restart policies: Always (default), OnFailure, or Never	azure,containers,aci
+
+What are Azure Container Apps revisions?	Revisions are immutable snapshots of a container app version. They enable traffic splitting for blue-green deployments and A/B testing.	azure,containers,container-apps,revisions
+
+How does scaling work in Azure Container Apps?	Container Apps support HTTP-based autoscaling (based on concurrent requests) and event-driven scaling using KEDA scalers (queues, topics, custom metrics)	azure,containers,container-apps,scaling
+
+What is KEDA in the context of Container Apps?	KEDA (Kubernetes Event-Driven Autoscaling) is a component that enables event-driven autoscaling based on various event sources like Azure Queue, Service Bus, Redis, etc.	azure,containers,container-apps,keda
+
+A microservices application needs to scale based on Azure Service Bus queue length. What Azure container service is most appropriate?	Azure Container Apps - supports KEDA-based scaling with Service Bus queue scaler, ideal for event-driven microservices	azure,containers,use-case,container-apps
+
+What is Dapr in Azure Container Apps?	Dapr (Distributed Application Runtime) is an optional feature that simplifies microservices development with service-to-service invocation, state management, pub/sub, and secrets management.	azure,containers,container-apps,dapr
+
+Can Container Apps route traffic between different revisions?	Yes, you can split traffic percentage-based between multiple active revisions for blue-green deployments or canary releases	azure,containers,container-apps,traffic-routing
+
+What is an ACR task?	ACR Tasks enable automated container image building in the cloud, supporting CI/CD scenarios with triggers on source code commits, base image updates, or schedules.	azure,containers,acr,tasks
+
+How can you automatically rebuild images when base images are updated?	Use ACR Tasks with base image update triggers to automatically rebuild and update images when dependencies change	azure,containers,acr,tasks
+
+What is ACR content trust?	Content trust (Docker Content Trust) uses digital signatures to ensure the integrity and publisher of container images, available in Premium tier.	azure,containers,acr,security
+
+A company must ensure container images are scanned for vulnerabilities. What ACR feature helps with this?	ACR integrates with Microsoft Defender for Containers (formerly Azure Security Center) to scan images for vulnerabilities	azure,containers,acr,security,use-case
+
+How do you pull images from ACR to ACI without using admin credentials?	Use Managed Identity: assign a managed identity to ACI and grant it AcrPull role on the ACR. ACI will authenticate using the managed identity.	azure,containers,authentication,use-case
+
+What is a webhook in ACR?	Webhooks send notifications to external systems when specific actions occur (like image push or deletion), enabling CI/CD automation	azure,containers,acr,webhooks
+
+Can you import images from Docker Hub into ACR?	Yes, using "az acr import" command or ACR's import functionality to copy public/private images from external registries	azure,containers,acr
+
+What is the difference between ACR and Docker Hub?	ACR: Private registry in Azure, integrated with Azure services, geo-replication, VNet support, enterprise features. Docker Hub: Public registry, community images, requires authentication for private images, external to Azure.	azure,containers,acr,comparison
+
+How can you configure ACI to use environment variables?	Specify environment variables during container creation using --environment-variables flag (CLI) or environmentVariables in ARM templates	azure,containers,aci,configuration
+
+What storage options are available in ACI?	Azure Files volumes can be mounted to persist data across container restarts. Git Repo volumes for cloning repositories. Empty Dir for temporary storage.	azure,containers,aci,storage
+
+A container needs persistent storage that survives container restarts in ACI. What should be used?	Mount an Azure Files share to the container using volume mounts configuration	azure,containers,aci,use-case,storage
+
+Can multiple containers in a container group communicate with each other?	Yes, containers in the same container group share the same network namespace and can communicate via localhost	azure,containers,aci
+
+What is the Azure Container Apps environment?	An environment is a secure boundary around one or more container apps that share the same virtual network, logging workspace, and Dapr configuration.	azure,containers,container-apps,environment
+
+How does ingress work in Azure Container Apps?	Ingress provides HTTP/HTTPS endpoints for container apps with automatic certificate provisioning, custom domains, and traffic splitting capabilities	azure,containers,container-apps,ingress
+
+Can Container Apps scale to zero?	Yes, Container Apps can scale to zero replicas when there's no traffic or events, reducing costs for idle applications	azure,containers,container-apps,scaling
+
+What is the minimum and maximum replica count in Container Apps?	Configurable: minimum of 0 (scale to zero) up to 30 replicas (default max, can be increased)	azure,containers,container-apps,scaling
+
+A web API needs to auto-scale based on HTTP request load. What Container Apps scaling rule should be used?	HTTP scaling rule - scales based on concurrent HTTP requests per replica	azure,containers,container-apps,use-case,scaling
+
+What authentication methods does Container Apps support?	Built-in authentication with Microsoft Entra ID, GitHub, Facebook, Google, Twitter, and custom OpenID Connect providers (Easy Auth)	azure,containers,container-apps,authentication
+
+Can you use custom domains with Container Apps?	Yes, Container Apps support custom domains with automatic or bring-your-own certificates	azure,containers,container-apps,networking
+
+What is the Container Apps managed environment logs?	Container Apps can send logs to Azure Log Analytics workspace for monitoring, querying, and alerting on application and system logs	azure,containers,container-apps,monitoring
+
+How do you deploy a multi-container application to ACI?	Use YAML or ARM templates to define a container group with multiple container definitions, specifying resources, ports, and volumes	azure,containers,aci,deployment
+
+What protocols are supported for liveness and readiness probes in ACI?	HTTP GET and command execution probes to check container health	azure,containers,aci,health
+
+Can ACR replicate to specific regions only?	Yes, with Premium tier geo-replication, you select which Azure regions to replicate to, providing control over data residency and latency	azure,containers,acr,geo-replication
+
+What is the ACR quarantine pattern?	Quarantine pattern isolates newly pushed images until they pass security scans, preventing vulnerable images from being used	azure,containers,acr,security
+
+A CI/CD pipeline needs to build and push images to ACR. What authentication method is recommended?	Use Service Principal or Managed Identity with AcrPush role for automated scenarios	azure,containers,acr,authentication,use-case
+
+What is the purpose of ACR SKU?	ACR SKUs (Basic, Standard, Premium) determine features like storage capacity, throughput, geo-replication, VNet support, and pricing	azure,containers,acr
+
+Can Container Apps communicate with each other privately?	Yes, container apps in the same environment can communicate using service discovery via app names without public internet exposure	azure,containers,container-apps,networking
+
+What is the difference between jobs and apps in Container Apps?	Apps: long-running services with ingress. Jobs: run-to-completion or scheduled tasks that execute and terminate	azure,containers,container-apps
+
+How can you implement blue-green deployment in Container Apps?	Use revisions with traffic splitting: deploy new revision (green), test it, gradually shift traffic from old (blue) to new, deactivate old revision	azure,containers,container-apps,deployment
+
+What is the Container Apps revision mode?	Single mode: automatically deactivates old revisions. Multiple mode: keeps multiple revisions active for traffic splitting and rollback	azure,containers,container-apps,revisions
+
+Can you run cron jobs in Azure Container Apps?	Yes, using Container Apps Jobs with schedule triggers (cron expressions) for scheduled task execution	azure,containers,container-apps,jobs
+
+What is the maximum execution time for a Container Apps Job?	Jobs can run for up to 1 hour by default, configurable up to 24 hours	azure,containers,container-apps,jobs
+
+A container app needs to access secrets securely. What's the best approach?	Store secrets in Azure Key Vault and reference them in Container Apps using Key Vault references with Managed Identity	azure,containers,container-apps,security,use-case
+
+What is ACR anonymous pull access?	Anonymous pull allows public access to specific repositories in ACR without authentication, useful for open-source projects	azure,containers,acr
+
+Can you lock ACR repositories to prevent modifications?	Yes, using repository/tag locking features in Premium tier to make images immutable	azure,containers,acr,security
+
+What is the pricing model for ACI?	ACI uses per-second billing based on vCPU and memory allocation, plus data egress costs	azure,containers,aci,pricing
+
+What is the pricing model for Container Apps?	Container Apps charges for vCPU and memory consumption per second when running, plus request/egress costs. Supports scale-to-zero for cost optimization.	azure,containers,container-apps,pricing

@@ -1,0 +1,169 @@
+# Azure API Management - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure API Management (APIM)?	A fully managed service that enables organizations to publish, secure, transform, maintain, and monitor APIs with a gateway, developer portal, and management plane	azure,apim,basics
+
+What are the main components of API Management?	1. API Gateway (proxy for requests), 2. Management plane (configure APIs), 3. Developer portal (documentation and testing)	azure,apim,components
+
+What is the API Gateway in APIM?	The runtime component that accepts API calls, applies policies, and forwards requests to backend services	azure,apim,gateway
+
+What is the Developer Portal in APIM?	Automatically generated, customizable website where API consumers can discover APIs, read documentation, try APIs, and subscribe	azure,apim,developer-portal
+
+What are APIM pricing tiers?	1. Consumption (serverless, pay per call), 2. Developer (non-production), 3. Basic, 4. Standard, 5. Premium (multi-region, VNet)	azure,apim,pricing
+
+When should you use Consumption tier vs Standard tier?	Consumption: Variable traffic, serverless, pay-per-call, no SLA. Standard: Production workloads, consistent traffic, SLA required.	azure,apim,pricing,comparison
+
+What is an API in APIM context?	A set of operations (endpoints) that can be invoked by clients, representing a backend service interface	azure,apim,api
+
+What is an operation in APIM?	An individual endpoint (HTTP method + URL path) within an API, e.g., GET /users, POST /orders	azure,apim,operation
+
+What is a product in APIM?	A packaging of one or more APIs with usage quotas, access controls, and terms of use, published to developers	azure,apim,product
+
+What is the difference between open and protected products?	Open products: accessible without subscription. Protected products: require subscription key for access.	azure,apim,product
+
+What is a subscription in APIM?	A credential (subscription key) that grants access to one or more products/APIs, used for authentication and rate limiting	azure,apim,subscription
+
+What subscription scopes are available in APIM?	1. All APIs (instance-wide), 2. Product (specific product), 3. Single API, 4. All products	azure,apim,subscription
+
+A company wants to offer free and premium API tiers with different rate limits. How should this be configured in APIM?	Create two products (free and premium) with different rate limit policies, assign APIs to both products	azure,apim,use-case,product
+
+What are policies in APIM?	XML-based rules that execute sequentially to modify API request/response behavior (authentication, caching, transformation, throttling)	azure,apim,policies
+
+What are the four policy sections?	1. Inbound (before forwarding to backend), 2. Backend (before sending to backend), 3. Outbound (before returning to client), 4. On-error (on errors)	azure,apim,policies
+
+What is the execution order of policies?	Inbound → Backend → [Backend Service] → Outbound → Response (On-error executes if error occurs)	azure,apim,policies
+
+What is the rate-limit policy?	Limits the number of calls per time period (second/minute/hour) to prevent API overuse	azure,apim,policies,rate-limit
+
+What is the quota policy?	Limits total call volume or bandwidth over a longer period (day/week/month), resets at period end	azure,apim,policies,quota
+
+What is the difference between rate-limit and quota?	Rate-limit: short-term throttling (calls per second/minute). Quota: long-term allowance (total calls per day/month).	azure,apim,policies,comparison
+
+A public API experiences sudden traffic spikes. What APIM policy prevents backend overload?	Rate-limit-by-key policy - restricts requests per time window per subscription/IP/user	azure,apim,use-case,policies
+
+What is the cache-lookup policy?	Checks if a cached response exists for the request, returning cached response if available	azure,apim,policies,caching
+
+What is the cache-store policy?	Stores the response in cache for future requests based on cache key and duration	azure,apim,policies,caching
+
+What is the set-backend-service policy?	Changes the backend URL dynamically based on conditions (region, version, environment)	azure,apim,policies,backend
+
+What is the rewrite-uri policy?	Modifies the request URL path before forwarding to backend, enabling URL transformation	azure,apim,policies,transformation
+
+What is the set-header policy?	Adds, updates, or removes HTTP headers in request or response	azure,apim,policies,transformation
+
+What is the validate-jwt policy?	Validates JWT tokens in request headers/query parameters before forwarding to backend, enforcing authentication	azure,apim,policies,security
+
+A backend API expects XML but client sends JSON. What APIM policy enables this?	json-to-xml policy in inbound section - transforms request body format	azure,apim,use-case,policies
+
+What is the find-and-replace policy?	Performs string replacement in request/response bodies	azure,apim,policies,transformation
+
+What is the forward-request policy?	Forwards request to backend service (default behavior, can be customized or omitted)	azure,apim,policies,backend
+
+What is the return-response policy?	Immediately returns a response without forwarding to backend, useful for mocking or caching	azure,apim,policies
+
+What is policy inheritance in APIM?	Policies can be defined at multiple levels (global, product, API, operation) with inheritance and override	azure,apim,policies,inheritance
+
+What is the policy scope hierarchy?	Global (all APIs) → Product → API → Operation (most specific wins)	azure,apim,policies,inheritance
+
+What is the base element in policies?	Controls policy inheritance - where parent scope policies are inserted relative to current scope policies	azure,apim,policies,inheritance
+
+What is the choose policy?	Conditional logic (if/else) that applies different policy sections based on conditions	azure,apim,policies,conditional
+
+What is the retry policy?	Automatically retries backend requests on failure with configurable interval and count	azure,apim,policies,retry
+
+What authentication methods does APIM support?	1. Subscription keys, 2. OAuth 2.0, 3. Client certificates, 4. Basic authentication, 5. IP whitelisting	azure,apim,authentication
+
+What is the difference between primary and secondary subscription keys?	Two keys per subscription enabling key rotation without service interruption - rotate secondary, test, then rotate primary	azure,apim,subscription,keys
+
+How should subscription keys be passed in requests?	HTTP header (Ocp-Apim-Subscription-Key) or query parameter (subscription-key)	azure,apim,subscription
+
+What is a named value in APIM?	A key-value pair for storing configuration values (API keys, connection strings, URLs) that can be referenced in policies	azure,apim,named-values
+
+Can named values be stored in Key Vault?	Yes, APIM can reference secrets stored in Azure Key Vault using Managed Identity	azure,apim,named-values,key-vault
+
+What is a backend in APIM?	A representation of a backend service with URL, credentials, and circuit breaker settings, reusable across APIs	azure,apim,backend
+
+What is the circuit breaker pattern in APIM?	Automatically stops forwarding requests to failing backends temporarily to prevent cascade failures	azure,apim,backend,circuit-breaker
+
+What is API versioning in APIM?	Managing multiple versions of an API (v1, v2) allowing clients to specify which version to use	azure,apim,versioning
+
+What versioning schemes does APIM support?	1. Path (e.g., /v1/users), 2. Query parameter (e.g., ?api-version=v1), 3. Header (e.g., Api-Version: v1)	azure,apim,versioning
+
+What is API revision in APIM?	Non-breaking changes to an API tracked separately, allowing safe updates and rollback if needed	azure,apim,revision
+
+What is the difference between versions and revisions?	Versions: breaking changes, exposed to consumers, permanent. Revisions: non-breaking changes, internal tracking, can be made current.	azure,apim,versioning,revision
+
+A team wants to test API changes before making them current. What APIM feature enables this?	Revisions - create new revision, test internally, make current when ready, or rollback	azure,apim,use-case,revision
+
+What is the mock-response policy?	Returns mock responses without calling backend, useful for development and testing	azure,apim,policies,mocking
+
+What is CORS in APIM?	Cross-Origin Resource Sharing policy that allows web applications from different domains to access the API	azure,apim,policies,cors
+
+What is the ip-filter policy?	Allows or denies requests based on source IP address or range	azure,apim,policies,security
+
+What is the validate-content policy?	Validates request/response body against OpenAPI schema, rejecting invalid payloads	azure,apim,policies,validation
+
+What is OpenAPI specification support in APIM?	APIM can import APIs from OpenAPI/Swagger definitions and export APIs as OpenAPI specs	azure,apim,openapi
+
+What is the self-hosted gateway?	A containerized version of APIM gateway that can be deployed anywhere (on-premises, edge, other clouds) for hybrid scenarios	azure,apim,gateway,self-hosted
+
+When should you use self-hosted gateway?	For on-premises APIs, edge computing, hybrid scenarios, or regions without Azure presence	azure,apim,gateway,self-hosted
+
+What monitoring capabilities does APIM provide?	Azure Monitor metrics, Application Insights integration, diagnostic logs, request tracing, API analytics	azure,apim,monitoring
+
+What metrics are available in APIM?	Request count, failed requests, latency, capacity utilization, gateway requests	azure,apim,monitoring,metrics
+
+What is request tracing in APIM?	Detailed execution trace showing policy execution, backend calls, and timing for debugging	azure,apim,monitoring,tracing
+
+What is capacity in APIM metrics?	Metric indicating resource utilization (CPU, memory) of APIM instance, used for scaling decisions	azure,apim,monitoring,capacity
+
+A production APIM instance shows 80% capacity. What action is needed?	Scale up to higher tier or scale out to additional units (Premium tier) to handle load	azure,apim,use-case,scaling
+
+What is the difference between scale up and scale out in APIM?	Scale up: move to higher tier (more resources per unit). Scale out: add more units (Premium tier only, multi-region support).	azure,apim,scaling
+
+Can APIM integrate with Virtual Networks?	Yes, Premium tier supports VNet integration (internal or external) for secure backend access	azure,apim,networking,vnet
+
+What is the difference between internal and external VNet mode?	Internal: APIM accessible only from within VNet. External: APIM accessible from internet but can access VNet resources.	azure,apim,networking,vnet
+
+What is client certificate authentication in APIM?	Mutual TLS authentication where client presents certificate to APIM for verification before accessing APIs	azure,apim,authentication,certificates
+
+What is the validate-client-certificate policy?	Validates client certificate properties (issuer, subject, thumbprint) before allowing request	azure,apim,policies,security
+
+What is API schema validation in APIM?	Automatic validation of request/response payloads against defined schemas (OpenAPI), rejecting invalid requests	azure,apim,validation
+
+What is the send-request policy?	Makes additional HTTP requests to external services during policy execution (e.g., for enrichment, validation)	azure,apim,policies,send-request
+
+A backend requires an API key from a third-party service. How can APIM obtain it?	Use send-request policy to call token endpoint, extract key from response, add to backend request header	azure,apim,use-case,policies
+
+What is the set-variable policy?	Stores values in context variables for use in other policies during request processing	azure,apim,policies,variable
+
+What is the log-to-eventhub policy?	Sends custom log messages to Azure Event Hub for external monitoring and analytics	azure,apim,policies,logging
+
+What is the trace policy?	Adds custom traces to request tracing output for debugging	azure,apim,policies,tracing
+
+What is the check-header policy?	Validates presence and value of HTTP headers, failing request if conditions not met	azure,apim,policies,validation
+
+What is the quota-by-key policy?	Enforces quota limits based on a key (subscription, user, IP) rather than globally	azure,apim,policies,quota
+
+What is the cross-domain policy?	Makes API accessible from browser-based clients in different domains by handling CORS	azure,apim,policies,cors
+
+What is GraphQL support in APIM?	APIM can proxy GraphQL APIs with policies, subscriptions, and rate limiting	azure,apim,graphql
+
+What is the difference between managed and consumption gateway?	Managed: dedicated instances, SLA, more features. Consumption: serverless, no SLA, pay-per-call, auto-scale.	azure,apim,gateway,comparison
+
+Can APIM transform SOAP to REST?	Yes, APIM can import SOAP APIs and expose them as REST endpoints with automatic transformation	azure,apim,transformation,soap
+
+What is the authentication-basic policy?	Adds basic authentication (username/password) to backend requests	azure,apim,policies,authentication
+
+What is the authentication-certificate policy?	Adds client certificate authentication to backend requests	azure,apim,policies,authentication
+
+What is the authentication-managed-identity policy?	Obtains token using APIM's Managed Identity for authenticating to backend services (Key Vault, Storage, APIs)	azure,apim,policies,authentication,managed-identity
+
+An API backend requires Azure AD authentication. How can APIM authenticate?	Use authentication-managed-identity policy to obtain token for backend service	azure,apim,use-case,authentication
+
+What is API monetization with APIM?	Charging for API usage using products with quotas integrated with billing systems	azure,apim,monetization
+
+What is the emit-metric policy?	Sends custom metrics to Application Insights for monitoring and alerting	azure,apim,policies,monitoring
+
+What backup and restore capabilities does APIM provide?	Manual backup of APIM configuration (APIs, policies, products) to storage, restore to same or different instance	azure,apim,backup
