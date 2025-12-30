@@ -16,19 +16,19 @@ Each training module folder contains a `flashcards.txt` file with exam-focused q
 
 | Module | File | Questions | Topics Covered |
 |--------|------|-----------|----------------|
-| App Service Web Apps | `implement-azure-app-service-web-apps/flashcards.txt` | 50+ | Deployment slots, scaling, pricing tiers, authentication, networking |
-| Azure Functions | `implement-azure-functions/flashcards.txt` | 65+ | Triggers, bindings, hosting plans, Durable Functions, scaling |
-| Containerized Solutions | `implement-containerized-solutions/flashcards.txt` | 60+ | ACR, ACI, Container Apps, authentication, scaling, networking |
-| Cosmos DB | `develop-solutions-that-use-azure-cosmos-db/flashcards.txt` | 65+ | Partitioning, consistency levels, throughput, indexing, queries |
-| Blob Storage | `develop-solutions-that-use-blob-storage/flashcards.txt` | 70+ | Access tiers, lifecycle, SAS, versioning, encryption, networking |
-| Secure Solutions | `implement-secure-azure-solutions/flashcards.txt` | 65+ | Key Vault, Managed Identity, App Configuration, feature flags |
-| Authentication | `implement-user-authentication-and-authorization/flashcards.txt` | 75+ | OAuth, OIDC, MSAL, SAS tokens, Entra ID, service principals |
-| API Management | `implement-api-management/flashcards.txt` | 70+ | Policies, products, subscriptions, rate limiting, transformations |
-| Event-Based Solutions | `develop-event-based-solutions/flashcards.txt` | 65+ | Event Grid, Event Hubs, event routing, streaming, partitions |
-| Message-Based Solutions | `develop-message-based-solutions/flashcards.txt` | 75+ | Service Bus, Queue Storage, queues vs topics, sessions, DLQ |
-| Application Insights | `troubleshoot-solutions-by-using-application-insights/flashcards.txt` | 70+ | Monitoring, telemetry, KQL queries, alerts, performance analysis |
+| App Service Web Apps | `implement-azure-app-service-web-apps/flashcards.txt` | 103 | Deployment slots, scaling, pricing tiers, authentication, networking |
+| Azure Functions | `implement-azure-functions/flashcards.txt` | 129 | Triggers, bindings, hosting plans, Durable Functions, scaling |
+| Containerized Solutions | `implement-containerized-solutions/flashcards.txt` | 123 | ACR, ACI, Container Apps, authentication, scaling, networking |
+| Cosmos DB | `develop-solutions-that-use-azure-cosmos-db/flashcards.txt` | 127 | Partitioning, consistency levels, throughput, indexing, queries |
+| Blob Storage | `develop-solutions-that-use-blob-storage/flashcards.txt` | 139 | Access tiers, lifecycle, SAS, versioning, encryption, networking |
+| Secure Solutions | `implement-secure-azure-solutions/flashcards.txt` | 137 | Key Vault, Managed Identity, App Configuration, feature flags |
+| Authentication | `implement-user-authentication-and-authorization/flashcards.txt` | 165 | OAuth, OIDC, MSAL, SAS tokens, Entra ID, service principals |
+| API Management | `implement-api-management/flashcards.txt` | 169 | Policies, products, subscriptions, rate limiting, transformations |
+| Event-Based Solutions | `develop-event-based-solutions/flashcards.txt` | 155 | Event Grid, Event Hubs, event routing, streaming, partitions |
+| Message-Based Solutions | `develop-message-based-solutions/flashcards.txt` | 167 | Service Bus, Queue Storage, queues vs topics, sessions, DLQ |
+| Application Insights | `troubleshoot-solutions-by-using-application-insights/flashcards.txt` | 173 | Monitoring, telemetry, KQL queries, alerts, performance analysis |
 
-**Total: 700+ flashcards covering all AZ-204 exam domains**
+**Total: 1,587 flashcards covering all AZ-204 exam domains**
 
 ## 🚀 How to Import into Anki
 
@@ -300,7 +300,7 @@ These flashcards are provided under the same license as the repository (MIT Lice
 ## ✅ Final Tips
 
 Before the exam:
-1. Review all 700+ flashcards at least once
+1. Review all 1,587 flashcards at least once
 2. Focus extra time on cards you found difficult
 3. Practice with actual Azure services (free tier available)
 4. Take official Microsoft practice assessment
@@ -311,5 +311,5 @@ Before the exam:
 ---
 
 *Last updated: 2025-12-30*
-*Total flashcards: 700+*
+*Total flashcards: 1,587*
 *Exam version: AZ-204 (current)*
