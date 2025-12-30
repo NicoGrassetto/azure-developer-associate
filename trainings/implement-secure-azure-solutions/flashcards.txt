@@ -1,0 +1,137 @@
+# Azure Secure Solutions - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What are the main Azure security services for developers?	1. Azure Key Vault (secrets management), 2. Managed Identities (passwordless authentication), 3. Azure App Configuration (centralized settings), 4. Microsoft Entra ID (identity)	azure,security,basics
+
+What is Azure Key Vault?	Azure Key Vault is a cloud service for securely storing and accessing secrets, encryption keys, and certificates with access control and auditing	azure,security,key-vault,basics
+
+What three types of objects does Key Vault store?	1. Secrets (API keys, passwords, connection strings), 2. Keys (cryptographic keys for encryption), 3. Certificates (SSL/TLS certificates)	azure,security,key-vault
+
+What Key Vault tiers are available?	1. Standard (software-protected keys), 2. Premium (HSM-protected keys for regulatory compliance)	azure,security,key-vault,tiers
+
+When should you use Premium Key Vault tier?	Use Premium when you need HSM (Hardware Security Module) protected keys for regulatory compliance (FIPS 140-2 Level 2)	azure,security,key-vault,premium
+
+What is a Managed Identity?	An automatically managed identity in Microsoft Entra ID that allows Azure resources to authenticate to services without storing credentials in code	azure,security,managed-identity,basics
+
+What are the two types of Managed Identities?	1. System-assigned (lifecycle tied to resource, 1:1), 2. User-assigned (independent lifecycle, reusable across resources)	azure,security,managed-identity
+
+When should you use System-assigned vs User-assigned Managed Identity?	System-assigned: Single resource, simple scenarios, auto-cleanup. User-assigned: Multiple resources, pre-provisioned identity, shared identity requirements.	azure,security,managed-identity
+
+A web app needs to access Key Vault, SQL Database, and Storage Account. What authentication approach is recommended?	Enable Managed Identity on the web app and grant appropriate permissions (RBAC roles) to each resource - no credentials in code	azure,security,use-case,managed-identity
+
+How does Managed Identity authentication work?	App requests token from Azure Instance Metadata Service → Entra ID validates identity → Returns access token → App uses token to access resource	azure,security,managed-identity,authentication
+
+What is Azure App Configuration?	A service for centralized management of application settings and feature flags with support for Key Vault references	azure,security,app-configuration,basics
+
+What can App Configuration store?	1. Key-value pairs (application settings), 2. Feature flags (enable/disable features), 3. Key Vault references (secret references)	azure,security,app-configuration
+
+What is the difference between App Configuration and Key Vault?	App Configuration: non-sensitive settings, feature flags, environment configs. Key Vault: secrets, passwords, certificates, encryption keys.	azure,security,comparison
+
+What is a Key Vault reference in App Configuration?	A special type of setting that stores a URI pointing to a secret in Key Vault, retrieved at runtime using Managed Identity	azure,security,app-configuration,key-vault-reference
+
+A company needs to store database connection strings securely. What's the best practice?	Store connection string in Key Vault, reference it from App Configuration using Key Vault reference, access via Managed Identity	azure,security,use-case,best-practices
+
+What access control methods are available in Key Vault?	1. Azure RBAC (recommended, unified management), 2. Access Policies (legacy, Key Vault-specific)	azure,security,key-vault,access-control
+
+What are the main Key Vault RBAC roles?	1. Key Vault Administrator (full access), 2. Key Vault Secrets Officer (manage secrets), 3. Key Vault Secrets User (read secrets), 4. Key Vault Keys Officer, 5. Key Vault Certificates Officer	azure,security,key-vault,rbac
+
+What is secret versioning in Key Vault?	Every secret update creates a new version, maintaining history. Apps can access specific versions or always get the latest.	azure,security,key-vault,versioning
+
+An application retrieves a secret without specifying a version. What version does Key Vault return?	The latest (current) enabled version of the secret	azure,security,key-vault,versioning
+
+What is soft delete in Key Vault?	Soft delete retains deleted objects for a retention period (7-90 days) allowing recovery before permanent deletion	azure,security,key-vault,soft-delete
+
+What is purge protection in Key Vault?	Purge protection prevents permanent deletion of secrets during the soft delete retention period, adding an extra layer of protection	azure,security,key-vault,purge-protection
+
+A developer accidentally deletes a critical secret. How long do they have to recover it with default settings?	90 days (default retention period for soft delete)	azure,security,key-vault,soft-delete,use-case
+
+What is a feature flag?	A configuration setting that enables or disables features dynamically without code deployment, supporting progressive rollout and A/B testing	azure,security,app-configuration,feature-flags
+
+What are feature flag filters?	Conditions that determine when a feature is enabled, such as percentage rollout, targeting specific users, time windows, or custom filters	azure,security,app-configuration,feature-flags
+
+A company wants to enable a new feature for 10% of users initially. What App Configuration feature supports this?	Feature flags with percentage filter - gradually increase percentage for progressive rollout	azure,security,app-configuration,use-case,feature-flags
+
+What is the purpose of labels in App Configuration?	Labels organize settings by environment (dev, staging, prod) allowing different values for the same key across environments	azure,security,app-configuration,labels
+
+How should you configure settings for different environments using App Configuration?	Use the same key names with different labels (dev, staging, prod), apps load settings based on their environment label	azure,security,app-configuration,labels,best-practices
+
+What networking security features does Key Vault support?	1. Public access (all networks), 2. Firewall rules (specific IPs), 3. Service endpoints (Azure backbone), 4. Private endpoints (private IP in VNet)	azure,security,key-vault,networking
+
+What is the most secure networking option for Key Vault?	Private endpoints - provide private IP in VNet, eliminating public internet exposure	azure,security,key-vault,networking,best-practices
+
+What is Key Vault content trust?	Digital signatures ensuring integrity and authenticity of secrets/keys, preventing tampering	azure,security,key-vault
+
+What is envelope encryption?	Encryption pattern where data is encrypted with a Data Encryption Key (DEK), and the DEK is encrypted with a Key Encryption Key (KEK) stored in Key Vault	azure,security,encryption,envelope
+
+Why use envelope encryption?	Allows rotating KEK without re-encrypting all data. Only DEKs need re-encryption, which is fast. Provides separation of concerns.	azure,security,encryption,envelope
+
+What is a certificate in Key Vault?	Digital certificates (X.509) for SSL/TLS, with automatic enrollment and renewal support from certificate authorities	azure,security,key-vault,certificates
+
+Can Key Vault automatically renew certificates?	Yes, Key Vault integrates with certificate authorities for automatic enrollment and renewal of certificates	azure,security,key-vault,certificates
+
+What is a Key Vault secret URI format?	https://{vault-name}.vault.azure.net/secrets/{secret-name}/{version} (version is optional, omit for latest)	azure,security,key-vault
+
+What is the Azure Key Vault SDK used for?	Programmatic access to Key Vault operations (set/get/delete secrets, keys, certificates) from applications	azure,security,key-vault,sdk
+
+What happens when you delete a Managed Identity?	System-assigned: deleted automatically with resource. User-assigned: must be manually deleted, remains until explicitly removed.	azure,security,managed-identity
+
+Can multiple resources share a User-assigned Managed Identity?	Yes, multiple resources can be assigned the same user-assigned managed identity, useful for shared access scenarios	azure,security,managed-identity
+
+What is the Azure Instance Metadata Service (IMDS)?	A REST API available to VM instances at 169.254.169.254 that provides identity tokens for Managed Identity authentication	azure,security,managed-identity,imds
+
+How do you rotate secrets in Key Vault?	Create new secret version → Update applications to retrieve latest → Verify new version works → Disable or delete old version	azure,security,key-vault,rotation
+
+A production system uses secrets that must be rotated every 90 days. What Key Vault features help?	Secret versioning (maintains multiple versions), expiration date notifications, and soft delete for safety during rotation	azure,security,key-vault,use-case,rotation
+
+What is a grace period in secret rotation?	Time window where both old and new secret versions work, allowing gradual deployment without downtime	azure,security,key-vault,rotation,best-practices
+
+What refresh strategies are available for App Configuration?	1. Push model (Event Grid notifications, real-time), 2. Poll model (periodic refresh with TTL), 3. Startup load (load once at startup)	azure,security,app-configuration,refresh
+
+When should you use push vs poll for configuration refresh?	Push: Real-time changes, feature flags requiring immediate effect. Poll: Periodic updates, cached configuration with TTL. Startup: Static rarely-changing configuration.	azure,security,app-configuration,refresh
+
+What is a sentinel key in App Configuration?	A special key whose change triggers a full configuration refresh, useful for cache invalidation and coordinated updates	azure,security,app-configuration,sentinel
+
+What Azure services integrate natively with Managed Identity?	Key Vault, Storage Account, SQL Database, Cosmos DB, Service Bus, Event Hubs, App Configuration, Azure Container Registry, and most Azure services	azure,security,managed-identity,integration
+
+How do you access Key Vault from an Azure Function?	Enable Managed Identity on Function App → Grant Key Vault Secrets User role → Use Azure.Identity SDK to access secrets	azure,security,use-case,key-vault,managed-identity
+
+What is the DefaultAzureCredential class?	A SDK class that automatically tries multiple authentication methods in order: Managed Identity, Azure CLI, Visual Studio, etc. - simplifies dev and prod authentication	azure,security,sdk,authentication
+
+Can you use Key Vault from on-premises applications?	Yes, using Service Principal authentication (less secure than Managed Identity) or Azure Arc for hybrid scenarios	azure,security,key-vault,hybrid
+
+What monitoring is available for Key Vault?	Diagnostic logs (all operations), Azure Monitor metrics (availability, latency, request counts), alerts for unauthorized access or failures	azure,security,key-vault,monitoring
+
+What operations are logged in Key Vault diagnostic logs?	All data plane operations: get/set/delete secrets, keys, certificates, authentication attempts, access denials	azure,security,key-vault,monitoring
+
+A security team needs to audit all secret access. What should be configured?	Enable Key Vault diagnostic logs, send to Log Analytics workspace, create queries and alerts for access patterns	azure,security,key-vault,use-case,monitoring
+
+What is the difference between management plane and data plane in Key Vault?	Management plane: Azure Resource Manager operations (create/delete vault, RBAC). Data plane: Key Vault operations (get/set secrets, keys, certificates).	azure,security,key-vault
+
+Can you restrict Key Vault access by IP address?	Yes, configure firewall rules to allow specific IP addresses or ranges, blocking all other access	azure,security,key-vault,networking
+
+What is a stored secret in App Configuration?	Direct key-value storage (not recommended for sensitive data) - use Key Vault references instead	azure,security,app-configuration
+
+What is the recommended pattern for secrets in applications?	Application → App Configuration (non-sensitive settings) → Key Vault reference → Key Vault (sensitive secrets) → Managed Identity (authentication)	azure,security,best-practices
+
+What is the maximum secret size in Key Vault?	25 KB per secret value	azure,security,key-vault,limits
+
+What is the maximum number of versions per secret?	No explicit limit, but consider cleanup of old versions for manageability	azure,security,key-vault,versioning
+
+Can you import existing secrets into Key Vault?	Yes, using Azure Portal, CLI, PowerShell, or SDK to create/update secrets with existing values	azure,security,key-vault
+
+What is bring-your-own-key (BYOK)?	Importing your own cryptographic keys into Key Vault Premium tier HSMs for complete control over key lifecycle	azure,security,key-vault,byok
+
+What is customer-managed keys (CMK)?	Using your own keys from Key Vault to encrypt Azure services data (Storage, Cosmos DB, SQL) instead of Microsoft-managed keys	azure,security,encryption,cmk
+
+What Azure services support customer-managed keys?	Storage Account, Cosmos DB, SQL Database, Azure Managed Disks, and many other services	azure,security,encryption,cmk
+
+What happens if Key Vault becomes unavailable?	Services using CMK may experience issues. Use Premium tier with geo-replication and ensure service redundancy for critical workloads.	azure,security,key-vault,availability
+
+What is Key Vault Managed HSM?	A fully managed, single-tenant, FIPS 140-2 Level 3 compliant HSM service for highly sensitive keys requiring maximum security	azure,security,key-vault,hsm
+
+When should you use Managed HSM vs Premium Key Vault?	Managed HSM: Strictest compliance (Level 3), single-tenant requirement, complete HSM control. Premium: Most scenarios (Level 2), multi-tenant, easier management.	azure,security,key-vault,hsm
+
+What is the principle of least privilege in Key Vault?	Grant only minimum required permissions (read secrets only, not manage) to identities, reducing security risk	azure,security,key-vault,best-practices
+
+Can Feature Flags in App Configuration reference Key Vault?	No, feature flags are for configuration toggles. For secrets in features, store feature settings separately and use Key Vault references.	azure,security,app-configuration

@@ -1,0 +1,129 @@
+# Azure Functions - Anki Flashcards
+# Import these into Anki using tab-separated format
+# Fields: Front, Back, Tags
+
+What is Azure Functions?	Azure Functions is a serverless compute service that enables event-driven code execution without managing infrastructure. You pay only for the compute time you consume.	azure,functions,basics
+
+What are the main Azure Functions hosting plans?	1. Consumption Plan (pay-per-execution), 2. Flex Consumption (enhanced scaling), 3. Premium Plan (no cold start), 4. Dedicated Plan (App Service), 5. Container Apps (Kubernetes-based)	azure,functions,hosting
+
+What is the timeout limit for functions in the Consumption plan?	5 minutes (default) up to 10 minutes (configurable maximum)	azure,functions,hosting,consumption
+
+What is the memory limit per function instance in the Consumption plan?	1.5 GB memory per instance	azure,functions,hosting,consumption
+
+When should you use the Premium hosting plan over Consumption?	Use Premium when you need: pre-warmed instances to avoid cold starts, VNet connectivity, unlimited execution duration, or more powerful compute (3.5 GB or 7 GB RAM options).	azure,functions,hosting,premium
+
+What is a trigger in Azure Functions?	A trigger is what causes a function to run. It defines how a function is invoked. Each function must have exactly one trigger.	azure,functions,triggers
+
+What is a binding in Azure Functions?	A binding is a declarative way to connect to data sources. Bindings can be input (read data) or output (write data) and eliminate the need for connection code in your function.	azure,functions,bindings
+
+Can a function have multiple triggers?	No, each function can have only one trigger, but it can have multiple input and output bindings.	azure,functions,triggers
+
+List 5 common Azure Functions trigger types.	1. HTTP Trigger, 2. Timer Trigger, 3. Queue Trigger, 4. Blob Trigger, 5. Event Grid Trigger, 6. Event Hub Trigger, 7. Cosmos DB Trigger, 8. Service Bus Trigger	azure,functions,triggers
+
+A company needs to process uploaded images automatically when they appear in blob storage. What trigger should be used?	Blob Trigger - automatically fires when a blob is added or updated in a specified container	azure,functions,use-case,triggers
+
+What is the difference between Queue Trigger and Queue Output Binding?	Queue Trigger fires the function when a message arrives in the queue. Queue Output Binding allows the function to write messages to a queue.	azure,functions,triggers,bindings
+
+What are Durable Functions?	Durable Functions is an extension that enables writing stateful workflows and orchestrations in a serverless environment, with automatic state management and checkpointing.	azure,functions,durable
+
+What are the main Durable Functions patterns?	1. Function Chaining (sequential), 2. Fan-out/Fan-in (parallel processing), 3. Async HTTP APIs (long-running operations), 4. Monitor (polling), 5. Human Interaction (approval workflows)	azure,functions,durable,patterns
+
+What is function chaining in Durable Functions?	Function chaining is a pattern where multiple functions execute in sequence, with the output of one function becoming the input to the next function.	azure,functions,durable,patterns
+
+What is the fan-out/fan-in pattern?	Fan-out/Fan-in executes multiple functions in parallel (fan-out), waits for all to complete, and then aggregates the results (fan-in).	azure,functions,durable,patterns
+
+A business process requires approval from a manager before proceeding. Which Durable Functions pattern fits this scenario?	Human Interaction pattern - waits for external events (approval/rejection) before continuing the workflow	azure,functions,use-case,durable
+
+What is a cold start in Azure Functions?	Cold start is the latency experienced when a function runs for the first time or after being idle, as Azure needs to allocate resources, load the runtime, and initialize dependencies.	azure,functions,performance
+
+How can you minimize cold starts in Azure Functions?	Use Premium Plan with pre-warmed instances, reduce package size and dependencies, use compiled languages, or use Dedicated Plan for always-on instances.	azure,functions,performance,best-practices
+
+What is the Functions Runtime?	The Functions Runtime is the execution environment that loads your function code, manages triggers and bindings, handles scaling, and provides logging and monitoring capabilities.	azure,functions,basics
+
+What file configures global settings for a Function App?	host.json - contains runtime configuration, timeout settings, logging levels, and extension configurations	azure,functions,configuration
+
+What file is used for local development settings in Azure Functions?	local.settings.json - stores app settings, connection strings, and configuration for local development (not deployed to Azure)	azure,functions,configuration
+
+A function needs to run every day at 2 AM. What trigger should be used?	Timer Trigger with a CRON expression: 0 0 2 * * * (seconds, minutes, hours, day, month, day-of-week)	azure,functions,use-case,triggers
+
+What is the CRON expression format used by Timer Triggers?	{second} {minute} {hour} {day} {month} {day-of-week} - Example: "0 */5 * * * *" runs every 5 minutes	azure,functions,triggers
+
+How does Azure Functions handle scaling in the Consumption plan?	Azure automatically scales by adding instances based on the rate of incoming events. Each instance can handle multiple concurrent executions depending on the trigger type.	azure,functions,scaling
+
+What is the scale controller in Azure Functions?	The scale controller monitors event rates and makes scale decisions, adding or removing instances based on demand.	azure,functions,scaling
+
+An HTTP-triggered function needs to process 10,000 requests per second. What hosting plan is recommended?	Premium Plan or Dedicated Plan with manual scaling to specific instance counts, as Consumption plan may have cold start issues at high scale.	azure,functions,use-case,hosting
+
+What authorization levels are available for HTTP triggers?	1. Anonymous (no key required), 2. Function (function-specific key), 3. Admin (master key required)	azure,functions,security,http
+
+What is a Managed Identity used for in Azure Functions?	Managed Identity provides an automatically managed identity in Microsoft Entra ID, allowing functions to authenticate to Azure services without storing credentials in code.	azure,functions,security
+
+A function needs to write data to Cosmos DB after processing. What's the easiest way to implement this?	Use a Cosmos DB Output Binding - declaratively configure it in function.json or attributes, eliminating manual connection code	azure,functions,bindings,use-case
+
+What types of bindings are available in Azure Functions?	Input Bindings (read data from sources), Output Bindings (write data to destinations), and Trigger Bindings (what causes function execution)	azure,functions,bindings
+
+Can you have multiple output bindings in a single function?	Yes, a function can write to multiple destinations using multiple output bindings (e.g., write to Blob Storage and Queue simultaneously)	azure,functions,bindings
+
+What is the difference between Consumption Plan and Flex Consumption Plan?	Flex Consumption provides enhanced per-function scaling, VNet support, configurable concurrency, and better performance while maintaining pay-per-execution pricing.	azure,functions,hosting
+
+A function running for 15 minutes times out in Consumption plan. What should be changed?	Switch to Premium Plan (unlimited duration) or Dedicated Plan, as Consumption plan maximum timeout is 10 minutes.	azure,functions,use-case,hosting
+
+What is the purpose of the function.json file?	function.json defines the function's trigger, bindings, and configuration in Azure Functions (for non-.NET languages or when not using attributes).	azure,functions,configuration
+
+How do you configure VNet integration for Azure Functions?	VNet integration requires Premium Plan or Dedicated Plan, then configure VNet integration in the Networking section to access private resources.	azure,functions,networking
+
+What is Application Insights used for in Azure Functions?	Application Insights provides telemetry, logging, performance monitoring, dependency tracking, and diagnostics for function executions.	azure,functions,monitoring
+
+A function processes messages from a Service Bus queue. What happens if the function fails?	Service Bus automatically retries failed messages based on the configured retry policy. After maximum retries, the message moves to the dead-letter queue.	azure,functions,triggers,error-handling
+
+What is the dead-letter queue in Service Bus triggers?	The dead-letter queue stores messages that cannot be processed successfully after all retry attempts, allowing for manual investigation and reprocessing.	azure,functions,error-handling
+
+What is an orchestrator function in Durable Functions?	An orchestrator function defines the workflow, coordinates the execution of activity functions, manages state, and handles retries and error handling.	azure,functions,durable
+
+What is an activity function in Durable Functions?	Activity functions are the basic units of work in a durable function workflow. They contain the actual business logic and are called by orchestrator functions.	azure,functions,durable
+
+What is a client function in Durable Functions?	Client functions (also called starter functions) are responsible for creating new instances of orchestrator functions and can query the status of running orchestrations.	azure,functions,durable
+
+Can orchestrator functions call external APIs directly?	No, orchestrator functions must be deterministic and cannot make non-deterministic calls like HTTP requests. Use activity functions for external API calls.	azure,functions,durable,best-practices
+
+A multi-step workflow needs to process data, call an API, and save results. What Azure Functions pattern should be used?	Function Chaining pattern in Durable Functions - orchestrate sequential steps with state management and automatic retry.	azure,functions,use-case,durable
+
+What happens to function state if an instance crashes during Durable Functions execution?	Durable Functions automatically persists state to Azure Storage. If an instance crashes, another instance can replay the orchestrator function from the last checkpoint.	azure,functions,durable
+
+What is the maximum execution time for functions in Premium Plan?	Unlimited (officially 60 minutes is documented, but can be configured for longer)	azure,functions,hosting,premium
+
+How does concurrency work in Azure Functions?	Concurrency depends on the trigger type. For example, HTTP and Queue triggers process multiple executions concurrently on a single instance, while Blob triggers typically process one blob at a time per instance.	azure,functions,scaling
+
+What is the functionTimeout setting in host.json?	functionTimeout specifies the maximum time a function can run before being terminated. Default is 5 minutes for Consumption, configurable up to 10 minutes.	azure,functions,configuration
+
+An e-commerce site needs to process orders asynchronously. What Azure Functions approach is recommended?	Use Queue Trigger: Order API writes to Queue Storage, Function processes orders from queue, providing decoupling and automatic retry.	azure,functions,use-case,triggers
+
+What is the difference between Service Bus and Queue Storage triggers?	Service Bus: Enterprise messaging with topics/subscriptions, transactions, duplicate detection, message ordering. Queue Storage: Simple, cost-effective queuing for basic async processing.	azure,functions,triggers
+
+How do you secure secrets and connection strings in Azure Functions?	Store secrets in Azure Key Vault and reference them in Application Settings using Key Vault references (@Microsoft.KeyVault(SecretUri=...)), accessed via Managed Identity.	azure,functions,security,best-practices
+
+What programming languages are supported by Azure Functions?	C#, Java, JavaScript/TypeScript, Python, PowerShell, and custom handlers (enabling other languages)	azure,functions,basics
+
+Can you run Docker containers with Azure Functions?	Yes, using Linux Consumption Plan, Premium Plan, or Container Apps hosting. Create a custom container image with your function code and dependencies.	azure,functions,containers
+
+What is the Event Grid trigger used for?	Event Grid trigger responds to events published to Event Grid topics, ideal for event-driven architectures and reacting to Azure resource events.	azure,functions,triggers
+
+A function needs to react to changes in Cosmos DB documents in real-time. What trigger should be used?	Cosmos DB Trigger - uses the Cosmos DB Change Feed to detect and respond to document inserts and updates	azure,functions,triggers,use-case
+
+What is a function key and when is it used?	Function keys are used for authentication with HTTP-triggered functions. They provide basic API key authentication without complex identity providers.	azure,functions,security
+
+What is the difference between system-assigned and user-assigned Managed Identity?	System-assigned: lifecycle tied to the function app, 1:1 relationship. User-assigned: independent, reusable across multiple resources, managed separately.	azure,functions,security
+
+How can you test Azure Functions locally?	Use Azure Functions Core Tools to run functions on your local machine, with local.settings.json for configuration and Azure Storage Emulator or Azurite for storage.	azure,functions,development
+
+What is the purpose of extension bundles in host.json?	Extension bundles automatically provide common binding extensions without manually installing NuGet packages, simplifying development for non-.NET languages.	azure,functions,configuration
+
+A function sporadically fails due to transient errors. How should this be handled?	Implement retry policies in host.json or use Durable Functions with automatic retry logic. Many triggers (like Service Bus) have built-in retry mechanisms.	azure,functions,error-handling,best-practices
+
+What is the singleton pattern in Azure Functions?	Singleton ensures only one instance of a function processes events at a time, useful for scenarios requiring ordered processing or preventing race conditions (configurable for some triggers).	azure,functions,patterns
+
+Can Azure Functions integrate with API Management?	Yes, API Management can front Azure Functions to provide rate limiting, authentication, caching, and API gateway features.	azure,functions,integration
+
+What is the purpose of the AzureWebJobsStorage connection string?	AzureWebJobsStorage is required for Functions runtime to store state, manage triggers, and coordinate scaling. It points to a Storage Account.	azure,functions,configuration
+
+When should you choose Azure Functions over Azure Logic Apps?	Choose Functions for: code-first development, complex business logic, performance requirements, custom integrations. Choose Logic Apps for: workflow orchestration, visual design, extensive connectors, business users.	azure,functions,basics
