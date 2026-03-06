@@ -173,6 +173,7 @@ pip install azure-identity azure-storage-blob azure-cosmos azure-functions
 | Resource | Description | Link |
 |----------|-------------|------|
 | **AZ-204 GitHub Study Guide** | Excellent community study guide | [arvigeus/AZ-204](https://github.com/arvigeus/AZ-204/) |
+| **AZ-204 Topics (Web)** | Interactive topic index / study companion | [Topics](https://az-204.vercel.app/topics) |
 | **Merlin Learn** | Interactive learning platform for Azure certifications | [Merlin Learn](https://merlinlearn.com/) |
 | **Azure Code Samples** | Official code samples repository | [Azure-Samples](https://github.com/Azure-Samples) |
 | **Microsoft Tech Community** | Community discussions and blogs | [Tech Community](https://techcommunity.microsoft.com/) |
@@ -278,5 +279,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   If this repo helped you, consider giving it a ⭐
 </p>
-
-
